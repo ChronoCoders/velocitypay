@@ -1,0 +1,203 @@
+mod chain_spec;
+mod rpc;
+mod service;
+
+use sc_cli::SubstrateCli;
+use sc_service::PartialComponents;
+
+impl SubstrateCli for Cli {
+    fn impl_name() -> String {
+        "Velocity Node".into()
+    }
+
+    fn impl_version() -> String {
+        env!("SUBSTRATE_CLI_IMPL_VERSION").into()
+    }
+
+    fn description() -> String {
+        env!("CARGO_PKG_DESCRIPTION").into()
+    }
+
+    fn author() -> String {
+        env!("CARGO_PKG_AUTHORS").into()
+    }
+
+    fn support_url() -> String {
+        "https://github.com/velocitypay/velocity-chain/issues".into()
+    }
+
+    fn copyright_start_year() -> i32 {
+        2024
+    }
+
+    fn load_spec(&self, id: &str) -> Result<Box<dyn sc_service::ChainSpec>, String> {
+        Ok(match id {
+            "dev" => Box::new(chain_spec::development_config()?),
+            "" | "local" => Box::new(chain_spec::local_testnet_config()?),
+            path => Box::new(chain_spec::ChainSpec::from_json_file(
+                std::path::PathBuf::from(path),
+            )?),
+        })
+    }
+}
+
+#[derive(Debug, clap::Parser)]
+pub struct Cli {
+    #[command(subcommand)]
+    pub subcommand: Option<Subcommand>,
+
+    #[clap(flatten)]
+    pub run: sc_cli::RunCmd,
+}
+
+#[derive(Debug, clap::Subcommand)]
+pub enum Subcommand {
+    #[command(name = "key", about = "Key management cli utilities")]
+    Key(sc_cli::KeySubcommand),
+
+    #[command(name = "build-spec", about = "Build a chain specification")]
+    BuildSpec(sc_cli::BuildSpecCmd),
+
+    #[command(name = "check-block", about = "Validate blocks")]
+    CheckBlock(sc_cli::CheckBlockCmd),
+
+    #[command(name = "export-blocks", about = "Export blocks")]
+    ExportBlocks(sc_cli::ExportBlocksCmd),
+
+    #[command(
+        name = "export-state",
+        about = "Export the state of a given block into a chain spec"
+    )]
+    ExportState(sc_cli::ExportStateCmd),
+
+    #[command(name = "import-blocks", about = "Import blocks")]
+    ImportBlocks(sc_cli::ImportBlocksCmd),
+
+    #[command(name = "purge-chain", about = "Remove the whole chain")]
+    PurgeChain(sc_cli::PurgeChainCmd),
+
+    #[command(name = "revert", about = "Revert the chain to a previous state")]
+    Revert(sc_cli::RevertCmd),
+
+    #[command(name = "benchmark", about = "Benchmark runtime pallets.")]
+    #[cfg(feature = "runtime-benchmarks")]
+    Benchmark(frame_benchmarking_cli::BenchmarkCmd),
+
+    #[command(
+        name = "try-runtime",
+        about = "Try some command against runtime state."
+    )]
+    #[cfg(feature = "try-runtime")]
+    TryRuntime(try_runtime_cli::TryRuntimeCmd),
+}
+
+fn main() -> sc_cli::Result<()> {
+    let cli = <Cli as clap::Parser>::parse();
+
+    match &cli.subcommand {
+        Some(Subcommand::Key(cmd)) => cmd.run(&cli),
+        Some(Subcommand::BuildSpec(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
+        }
+        Some(Subcommand::CheckBlock(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    import_queue,
+                    ..
+                } = service::new_partial(&config)?;
+                Ok((cmd.run(client, import_queue), task_manager))
+            })
+        }
+        Some(Subcommand::ExportBlocks(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    ..
+                } = service::new_partial(&config)?;
+                Ok((cmd.run(client, config.database), task_manager))
+            })
+        }
+        Some(Subcommand::ExportState(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    ..
+                } = service::new_partial(&config)?;
+                Ok((cmd.run(client, config.chain_spec), task_manager))
+            })
+        }
+        Some(Subcommand::ImportBlocks(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    import_queue,
+                    ..
+                } = service::new_partial(&config)?;
+                Ok((cmd.run(client, import_queue), task_manager))
+            })
+        }
+        Some(Subcommand::PurgeChain(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.sync_run(|config| cmd.run(config.database))
+        }
+        Some(Subcommand::Revert(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let PartialComponents {
+                    client,
+                    task_manager,
+                    backend,
+                    ..
+                } = service::new_partial(&config)?;
+                let aux_revert = Box::new(|client, _, blocks| {
+                    sc_consensus_grandpa::revert(client, blocks)?;
+                    Ok(())
+                });
+                Ok((cmd.run(client, backend, Some(aux_revert)), task_manager))
+            })
+        }
+        #[cfg(feature = "runtime-benchmarks")]
+        Some(Subcommand::Benchmark(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+
+            runner.sync_run(|config| {
+                if let frame_benchmarking_cli::BenchmarkCmd::Pallet(cmd) = cmd {
+                    cmd.run::<velocity_runtime::Block, service::ExecutorDispatch>(config)
+                } else {
+                    Err("Benchmarking sub-command unsupported".into())
+                }
+            })
+        }
+        #[cfg(feature = "try-runtime")]
+        Some(Subcommand::TryRuntime(cmd)) => {
+            let runner = cli.create_runner(cmd)?;
+            runner.async_run(|config| {
+                let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
+                let task_manager =
+                    sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
+                        .map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
+
+                Ok((
+                    cmd.run::<velocity_runtime::Block, service::ExecutorDispatch>(config),
+                    task_manager,
+                ))
+            })
+        }
+        None => {
+            let runner = cli.create_runner(&cli.run)?;
+            runner.run_node_until_exit(|config| async move {
+                service::new_full(config).map_err(sc_cli::Error::Service)
+            })
+        }
+    }
+}
