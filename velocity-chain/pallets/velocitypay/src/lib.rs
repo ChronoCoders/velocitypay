@@ -78,10 +78,13 @@ pub mod pallet {
     pub trait Config: frame_system::Config {
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
         type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-        
+
         /// KYC verification provider
         type KycVerification: pallet_kyc::KycVerification<Self::AccountId>;
-        
+
+        /// Compliance check provider
+        type ComplianceCheck: pallet_compliance::ComplianceCheck<Self::AccountId, BalanceOf<Self>>;
+
         #[pallet::constant]
         type MaxTransactionFee: Get<u32>;
     }
@@ -206,6 +209,9 @@ pub mod pallet {
         InvalidBurnRequestStatus,
         InsufficientReservedBalance,
         KYCNotVerified,
+        FeeCalculationFailed,
+        InvalidAmount,
+        ComplianceCheckFailed,
     }
 
     #[pallet::call]
@@ -275,7 +281,10 @@ pub mod pallet {
         ) -> DispatchResult {
             let requester = ensure_signed(origin)?;
             ensure!(!Self::is_paused(), Error::<T>::SystemPaused);
-            
+
+            // Validate amount is not zero
+            ensure!(!amount.is_zero(), Error::<T>::InvalidAmount);
+
             // Check KYC status
             ensure!(
                 T::KycVerification::is_verified(&requester),
@@ -391,7 +400,10 @@ pub mod pallet {
         ) -> DispatchResult {
             let requester = ensure_signed(origin)?;
             ensure!(!Self::is_paused(), Error::<T>::SystemPaused);
-            
+
+            // Validate amount is not zero
+            ensure!(!amount.is_zero(), Error::<T>::InvalidAmount);
+
             // Check KYC status
             ensure!(
                 T::KycVerification::is_verified(&requester),
@@ -449,7 +461,9 @@ pub mod pallet {
                 Error::<T>::InvalidBurnRequestStatus
             );
 
-            let _ = T::Currency::slash_reserved(&request.requester, request.amount);
+            // Slash reserved and ensure full amount is slashed
+            let (_, remaining) = T::Currency::slash_reserved(&request.requester, request.amount);
+            ensure!(remaining.is_zero(), Error::<T>::InsufficientReservedBalance);
 
             let new_supply = Self::total_supply()
                 .checked_sub(&request.amount)
@@ -526,7 +540,13 @@ pub mod pallet {
         ) -> DispatchResult {
             let sender = ensure_signed(origin)?;
             ensure!(!Self::is_paused(), Error::<T>::SystemPaused);
-            
+
+            // Validate amount is not zero
+            ensure!(!amount.is_zero(), Error::<T>::InvalidAmount);
+
+            // Prevent self-transfer
+            ensure!(sender != dest, Error::<T>::InvalidAmount);
+
             // Check KYC status for both sender and receiver
             ensure!(
                 T::KycVerification::is_verified(&sender),
@@ -537,16 +557,26 @@ pub mod pallet {
                 Error::<T>::KYCNotVerified
             );
 
+            // Perform compliance checks for both sender and receiver
+            T::ComplianceCheck::check_transaction(&sender, amount)
+                .map_err(|_| Error::<T>::ComplianceCheckFailed)?;
+            T::ComplianceCheck::check_transaction(&dest, amount)
+                .map_err(|_| Error::<T>::ComplianceCheckFailed)?;
+
             let fee_basis_points = Self::transaction_fee();
             let fee = amount
                 .saturating_mul(fee_basis_points.into())
                 .checked_div(&10000u32.into())
-                .unwrap_or_else(Zero::zero);
+                .ok_or(Error::<T>::FeeCalculationFailed)?;
 
-            // Verify sender has sufficient balance for amount + fee
-            let _total_amount = amount
+            // Calculate total amount needed (amount + fee)
+            let total_amount = amount
                 .checked_add(&fee)
                 .ok_or(Error::<T>::Overflow)?;
+
+            // Verify sender has sufficient balance for amount + fee
+            let sender_balance = T::Currency::free_balance(&sender);
+            ensure!(sender_balance >= total_amount, Error::<T>::InsufficientBalance);
 
             T::Currency::transfer(
                 &sender,

@@ -1,8 +1,9 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Align with blockchain enums exactly
 CREATE TYPE transaction_status AS ENUM ('pending', 'confirmed', 'failed');
-CREATE TYPE mint_request_status AS ENUM ('pending', 'approved', 'rejected', 'completed');
-CREATE TYPE burn_request_status AS ENUM ('pending', 'reserved', 'approved', 'rejected', 'completed');
+CREATE TYPE mint_request_status AS ENUM ('pending', 'completed', 'rejected');
+CREATE TYPE burn_request_status AS ENUM ('pending', 'reserved', 'completed', 'rejected');
 CREATE TYPE kyc_status AS ENUM ('notsubmitted', 'pending', 'verified', 'rejected');
 
 CREATE TABLE users (
