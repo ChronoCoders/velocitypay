@@ -18,6 +18,7 @@ pub mod pallet {
     use frame_system::pallet_prelude::*;
     use sp_runtime::traits::{CheckedAdd, CheckedSub, CheckedDiv, Saturating, Zero};
     use pallet_kyc::KycVerification;
+    use pallet_compliance::ComplianceCheck;
 
     type BalanceOf<T> =
         <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
