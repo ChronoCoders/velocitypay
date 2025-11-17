@@ -235,6 +235,7 @@ impl pallet_velocitypay::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type KycVerification = KYC;
+    type ComplianceCheck = Compliance;
     type MaxTransactionFee = MaxTransactionFee;
 }
 

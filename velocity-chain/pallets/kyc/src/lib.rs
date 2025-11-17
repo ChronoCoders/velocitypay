@@ -77,6 +77,7 @@ pub mod pallet {
         KycNotSubmitted,
         NotVerifier,
         InvalidStatus,
+        CannotVerifySelf,
     }
 
     #[pallet::call]
@@ -98,10 +99,14 @@ pub mod pallet {
         ) -> DispatchResult {
             let who = ensure_signed(origin)?;
 
-            ensure!(
-                !<KycDatabase<T>>::contains_key(&who),
-                Error::<T>::KycAlreadySubmitted
-            );
+            // Check if KYC already exists
+            if let Some(existing) = <KycDatabase<T>>::get(&who) {
+                // Only allow resubmission if previously rejected
+                ensure!(
+                    existing.status == KycStatus::Rejected,
+                    Error::<T>::KycAlreadySubmitted
+                );
+            }
 
             let current_block = <frame_system::Pallet<T>>::block_number();
 
@@ -129,6 +134,9 @@ pub mod pallet {
             let verifier = ensure_signed(origin)?;
             let authorized_verifier = Self::kyc_verifier().ok_or(Error::<T>::NotVerifier)?;
             ensure!(verifier == authorized_verifier, Error::<T>::NotVerifier);
+
+            // Prevent verifier from verifying themselves
+            ensure!(account != verifier, Error::<T>::CannotVerifySelf);
 
             let mut kyc_data = Self::kyc_data(&account).ok_or(Error::<T>::KycNotSubmitted)?;
 
@@ -183,13 +191,9 @@ pub mod pallet {
     }
 }
 
-// Implement the KycVerification trait
+// Implement the KycVerification trait by delegating to the inherent method
 impl<T: Config> crate::KycVerification<T::AccountId> for Pallet<T> {
     fn is_verified(account: &T::AccountId) -> bool {
-        if let Some(kyc) = Self::kyc_data(account) {
-            kyc.status == pallet::KycStatus::Verified
-        } else {
-            false
-        }
+        Pallet::<T>::is_verified(account)
     }
 }

@@ -2,6 +2,12 @@
 
 pub use pallet::*;
 
+/// Trait for compliance verification functionality
+pub trait ComplianceCheck<AccountId, Balance> {
+    /// Check if a transaction is compliant
+    fn check_transaction(account: &AccountId, amount: Balance) -> Result<(), &'static str>;
+}
+
 #[frame_support::pallet]
 pub mod pallet {
     use frame_support::{pallet_prelude::*, BoundedVec};
@@ -153,6 +159,7 @@ pub mod pallet {
         ReasonTooLong,
         NoComplianceOfficer,
         DailyLimitExceeded,
+        InvalidConfiguration,
     }
 
     #[pallet::call]
@@ -287,7 +294,7 @@ pub mod pallet {
             Self::flagged_accounts(account)
         }
 
-        pub fn check_transaction(
+        fn internal_check_transaction(
             account: &T::AccountId,
             amount: T::Balance,
         ) -> Result<(), &'static str> {
@@ -299,6 +306,12 @@ pub mod pallet {
             // Calculate current day based on block number
             let current_block = <frame_system::Pallet<T>>::block_number();
             let blocks_per_day = T::BlocksPerDay::get();
+
+            // Prevent division by zero
+            if blocks_per_day.is_zero() {
+                return Err("BlocksPerDay configuration cannot be zero");
+            }
+
             let current_day = current_block / blocks_per_day;
 
             // Get current daily volume for this account
@@ -326,5 +339,12 @@ pub mod pallet {
 
             Ok(())
         }
+    }
+}
+
+// Implement the ComplianceCheck trait
+impl<T: Config> crate::ComplianceCheck<T::AccountId, T::Balance> for Pallet<T> {
+    fn check_transaction(account: &T::AccountId, amount: T::Balance) -> Result<(), &'static str> {
+        Pallet::<T>::internal_check_transaction(account, amount)
     }
 }

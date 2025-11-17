@@ -12,11 +12,37 @@ pub struct Config {
     pub admin_api_key: String,
     pub rate_limit_requests: u32,
     pub rate_limit_window_seconds: u64,
+    pub cors_allowed_origins: Vec<String>,
 }
 
 impl Config {
     pub fn from_env() -> Result<Self, anyhow::Error> {
         dotenv::dotenv().ok();
+
+        // Load JWT secret - MUST be set in production
+        let jwt_secret = env::var("JWT_SECRET")
+            .map_err(|_| anyhow::anyhow!("JWT_SECRET must be set in environment variables"))?;
+
+        // Validate JWT secret strength
+        if jwt_secret.len() < 32 {
+            return Err(anyhow::anyhow!("JWT_SECRET must be at least 32 characters long"));
+        }
+
+        // Load admin API key - MUST be set in production
+        let admin_api_key = env::var("ADMIN_API_KEY")
+            .map_err(|_| anyhow::anyhow!("ADMIN_API_KEY must be set in environment variables"))?;
+
+        if admin_api_key.len() < 32 {
+            return Err(anyhow::anyhow!("ADMIN_API_KEY must be at least 32 characters long"));
+        }
+
+        // Parse CORS allowed origins
+        let cors_allowed_origins = env::var("CORS_ALLOWED_ORIGINS")
+            .unwrap_or_else(|_| "http://localhost:3000,http://localhost:5173".to_string())
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
 
         Ok(Config {
             database_url: env::var("DATABASE_URL")
@@ -27,19 +53,18 @@ impl Config {
             server_port: env::var("SERVER_PORT")
                 .unwrap_or_else(|_| "8080".to_string())
                 .parse()?,
-            jwt_secret: env::var("JWT_SECRET")
-                .unwrap_or_else(|_| "default-secret-change-in-production".to_string()),
+            jwt_secret,
             jwt_expiration: env::var("JWT_EXPIRATION")
                 .unwrap_or_else(|_| "86400".to_string())
                 .parse()?,
-            admin_api_key: env::var("ADMIN_API_KEY")
-                .unwrap_or_else(|_| "admin-key".to_string()),
+            admin_api_key,
             rate_limit_requests: env::var("RATE_LIMIT_REQUESTS")
                 .unwrap_or_else(|_| "100".to_string())
                 .parse()?,
             rate_limit_window_seconds: env::var("RATE_LIMIT_WINDOW_SECONDS")
                 .unwrap_or_else(|_| "60".to_string())
                 .parse()?,
+            cors_allowed_origins,
         })
     }
 

@@ -28,10 +28,18 @@ async fn main() -> std::io::Result<()> {
     log::info!("Server starting on http://{}", server_address);
 
     HttpServer::new(move || {
-        let cors = Cors::default()
-            .allow_any_origin()
-            .allow_any_method()
-            .allow_any_header()
+        // Configure CORS with whitelisted origins only
+        let mut cors = Cors::default();
+        for origin in &config.cors_allowed_origins {
+            cors = cors.allowed_origin(origin);
+        }
+        cors = cors
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE", "OPTIONS"])
+            .allowed_headers(vec![
+                actix_web::http::header::AUTHORIZATION,
+                actix_web::http::header::CONTENT_TYPE,
+                actix_web::http::header::ACCEPT,
+            ])
             .max_age(3600);
 
         App::new()
