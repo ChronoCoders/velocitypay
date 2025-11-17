@@ -1,7 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(deprecated)]
-#![allow(clippy::derivable_impls)]
-#![allow(clippy::let_unit_value)]
 
 pub use pallet::*;
 

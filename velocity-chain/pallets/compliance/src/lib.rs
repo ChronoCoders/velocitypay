@@ -1,4 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(deprecated)]
 
 pub use pallet::*;
 
@@ -13,7 +14,7 @@ pub mod pallet {
     use frame_support::{pallet_prelude::*, BoundedVec};
     use frame_system::pallet_prelude::*;
     use sp_runtime::{
-        traits::{CheckedAdd, Saturating},
+        traits::{CheckedAdd, Saturating, Zero},
         RuntimeDebug,
     };
     use sp_std::vec::Vec;
@@ -294,7 +295,7 @@ pub mod pallet {
             Self::flagged_accounts(account)
         }
 
-        fn internal_check_transaction(
+        pub fn internal_check_transaction(
             account: &T::AccountId,
             amount: T::Balance,
         ) -> Result<(), &'static str> {
