@@ -9,7 +9,10 @@ echo.
 echo Make sure Alice is running first!
 echo.
 
-target\release\velocity-node ^
+REM Create chain-data directory if it doesn't exist
+if not exist "chain-data\bob" mkdir "chain-data\bob"
+
+target\release\velocity-node.exe ^
   --base-path .\chain-data\bob ^
   --chain dev ^
   --bob ^

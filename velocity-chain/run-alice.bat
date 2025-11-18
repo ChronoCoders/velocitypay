@@ -7,7 +7,10 @@ echo Data directory: .\chain-data\alice
 echo RPC endpoint: http://localhost:9944
 echo.
 
-target\release\velocity-node ^
+REM Create chain-data directory if it doesn't exist
+if not exist "chain-data\alice" mkdir "chain-data\alice"
+
+target\release\velocity-node.exe ^
   --base-path .\chain-data\alice ^
   --chain dev ^
   --alice ^
