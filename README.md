@@ -1,16 +1,16 @@
-# Velocity Pay
+# Velo Pay
 
-Professional blockchain-based payment system with fiat-backed stablecoin (VPC).
+Professional blockchain-based payment system with fiat-backed stablecoin (VCS).
 
 ## System Architecture
 
-### 1. Velocity Chain (Substrate Blockchain)
+### 1. Velo Chain (Substrate Blockchain)
 Custom blockchain built on Substrate framework with PoA consensus.
 
-**Location**: `velocity-chain/`
+**Location**: `velo-chain/`
 
 **Components Implemented**:
-- **VelocityPay Pallet** (`pallets/velocitypay/`) - Core stablecoin logic
+- **VeloPay Pallet** (`pallets/velopay/`) - Core stablecoin logic
   - Mint/burn mechanisms with authority control
   - Request-based minting (requires approval)
   - Reserved burn system (locks tokens before burning)
@@ -23,7 +23,7 @@ Custom blockchain built on Substrate framework with PoA consensus.
   - KYC submission with document hashing
   - Verification workflow (pending/verified/rejected)
   - KYC verifier role management
-  - Integration with VelocityPay pallet
+  - Integration with VeloPay pallet
 
 - **Compliance Pallet** (`pallets/compliance/`) - AML/regulatory
   - Account flagging system
@@ -49,7 +49,7 @@ Custom blockchain built on Substrate framework with PoA consensus.
 ### 2. API Gateway (Actix-web + Subxt)
 RESTful API backend connecting frontend to blockchain.
 
-**Location**: `velocitypay-api/`
+**Location**: `velopay-api/`
 
 **Components Implemented**:
 - Configuration management (`src/config.rs`)
@@ -94,7 +94,7 @@ RESTful API backend connecting frontend to blockchain.
 ### 3. Frontend (SvelteKit)
 Modern web application for users and administrators.
 
-**Location**: `velocitypay-web/` (Not yet created)
+**Location**: `velopay-web/` (Not yet created)
 
 **Pages To Be Implemented**:
 - Landing page
@@ -102,7 +102,7 @@ Modern web application for users and administrators.
 - Wallet dashboard
   - Balance display
   - Transaction history
-  - Send/receive VPC
+  - Send/receive VCS
 - Mint/burn requests
   - Create new requests
   - View request history
@@ -184,22 +184,22 @@ rustup target add wasm32-unknown-unknown
 rustup target add wasm32-unknown-unknown
 ```
 
-### Build Velocity Chain
+### Build Velo Chain
 
 **On Linux/macOS**:
 ```bash
-cd velocity-chain
+cd velo-chain
 
 rustup target add wasm32-unknown-unknown
 
 cargo build --release
 
-./target/release/velocity-node --dev
+./target/release/velo-node --dev
 ```
 
 **On Windows**:
 ```powershell
-cd velocity-chain
+cd velo-chain
 
 rustup target add wasm32-unknown-unknown
 rustup component add rust-src
@@ -213,17 +213,17 @@ cargo build --release
 .\quick-start.bat
 
 # Or run manually
-.\target\release\velocity-node.exe --chain local --alice --tmp --rpc-external --rpc-cors all
+.\target\release\velo-node.exe --chain local --alice --tmp --rpc-external --rpc-cors all
 ```
 
 **Build time**: 15-45 minutes on first build
 
-**See `velocity-chain/BUILD.md` for detailed build instructions and troubleshooting.**
+**See `velo-chain/BUILD.md` for detailed build instructions and troubleshooting.**
 
 ### Build API Gateway
 
 ```bash
-cd velocitypay-api
+cd velopay-api
 
 cp .env.example .env
 
@@ -236,13 +236,13 @@ cargo run
 
 **Linux/macOS**:
 ```bash
-cd velocity-chain
+cd velo-chain
 cargo run --release -- --dev --tmp
 ```
 
 **Windows**:
 ```powershell
-cd velocity-chain
+cd velo-chain
 $env:OPENSSL_VENDORED = "1"
 cargo run --release -- --dev --tmp
 ```
@@ -250,15 +250,15 @@ cargo run --release -- --dev --tmp
 ### Create Production Chain Spec
 
 ```bash
-./target/release/velocity-node build-spec --chain local --disable-default-bootnode > chain-spec.json
+./target/release/velo-node build-spec --chain local --disable-default-bootnode > chain-spec.json
 
-./target/release/velocity-node build-spec --chain chain-spec.json --raw > chain-spec-raw.json
+./target/release/velo-node build-spec --chain chain-spec.json --raw > chain-spec-raw.json
 ```
 
 ## Database Setup
 
 ```sql
-CREATE DATABASE velocitypay;
+CREATE DATABASE velopay;
 
 CREATE TYPE transaction_status AS ENUM ('pending', 'confirmed', 'failed');
 CREATE TYPE mint_request_status AS ENUM ('pending', 'approved', 'rejected', 'completed');
@@ -345,20 +345,20 @@ CREATE INDEX idx_kyc_wallet ON kyc_submissions(wallet_address);
 - `POST /api/v1/auth/login` - Login and get JWT token
 
 ### Wallet
-- `GET /api/v1/wallet/{address}/balance` - Get VPC balance
+- `GET /api/v1/wallet/{address}/balance` - Get VCS balance
 - `GET /api/v1/wallet/{address}/transactions` - Transaction history
 - `POST /api/v1/wallet/create` - Create new wallet
 
 ### Payments
-- `POST /api/v1/payment/send` - Send VPC to another address
+- `POST /api/v1/payment/send` - Send VCS to another address
 - `GET /api/v1/payment/{tx_hash}` - Get transaction details
 - `GET /api/v1/payment/estimate-fee` - Calculate transaction fee
 
 ### Mint/Burn
-- `POST /api/v1/mint/request` - Request VPC minting
+- `POST /api/v1/mint/request` - Request VCS minting
 - `GET /api/v1/mint/requests` - List user mint requests
 - `POST /api/v1/mint/approve/{id}` - Admin approve mint
-- `POST /api/v1/burn/request` - Request VPC burning
+- `POST /api/v1/burn/request` - Request VCS burning
 - `GET /api/v1/burn/requests` - List user burn requests
 - `POST /api/v1/burn/approve/{id}` - Admin approve burn
 
@@ -368,7 +368,7 @@ CREATE INDEX idx_kyc_wallet ON kyc_submissions(wallet_address);
 - `POST /api/v1/kyc/verify/{address}` - Admin verify KYC
 
 ### Analytics
-- `GET /api/v1/stats/supply` - Total VPC supply
+- `GET /api/v1/stats/supply` - Total VCS supply
 - `GET /api/v1/stats/transactions` - Transaction statistics
 - `GET /api/v1/stats/volume` - Trading volume
 - `GET /api/v1/stats/users` - User statistics
@@ -381,14 +381,14 @@ CREATE INDEX idx_kyc_wallet ON kyc_submissions(wallet_address);
 
 ## Token Economics
 
-**Token**: VPC (VelocityPay Coin)
+**Token**: VCS (Velo Cash)
 **Type**: Fiat-backed Stablecoin
-**Peg**: 1 VPC = 1 USD
+**Peg**: 1 VCS = 1 USD
 **Decimals**: 12 (Substrate standard)
 **Transaction Fee**: 0.1% (configurable)
-**Minimum Transfer**: 0.01 VPC
-**Maximum Transfer**: 1,000,000 VPC per transaction
-**Daily Limit**: 10,000,000 VPC per user
+**Minimum Transfer**: 0.01 VCS
+**Maximum Transfer**: 1,000,000 VCS per transaction
+**Daily Limit**: 10,000,000 VCS per user
 
 ## Security Features
 
@@ -418,9 +418,9 @@ CREATE INDEX idx_kyc_wallet ON kyc_submissions(wallet_address);
 ### Validator Node Setup
 
 ```bash
-./velocity-node \
+./velo-node \
   --chain chain-spec-raw.json \
-  --base-path /data/velocity \
+  --base-path /data/velo \
   --port 30333 \
   --rpc-port 9933 \
   --ws-port 9944 \
@@ -434,12 +434,12 @@ CREATE INDEX idx_kyc_wallet ON kyc_submissions(wallet_address);
 ### API Gateway Deployment
 
 ```bash
-docker build -t velocitypay-api .
+docker build -t velopay-api .
 docker run -d \
-  --name velocitypay-api \
+  --name velopay-api \
   -p 8080:8080 \
   --env-file .env \
-  velocitypay-api
+  velopay-api
 ```
 
 ## Monitoring
@@ -457,7 +457,7 @@ Apache-2.0
 
 **Completed**:
 - ✅ Complete Substrate blockchain implementation
-- ✅ Custom pallets (VelocityPay, KYC, Compliance)
+- ✅ Custom pallets (VeloPay, KYC, Compliance)
 - ✅ Runtime configuration
 - ✅ Node service and chain specification
 - ✅ API Gateway project structure
@@ -480,7 +480,7 @@ Apache-2.0
 
 The following files need to be created to complete the system:
 
-**API Services** (`velocitypay-api/src/services/`):
+**API Services** (`velopay-api/src/services/`):
 - auth.rs - JWT generation and validation
 - wallet.rs - Wallet operations via Subxt
 - payment.rs - Payment transaction submission
@@ -489,7 +489,7 @@ The following files need to be created to complete the system:
 - kyc.rs - KYC submission and verification
 - analytics.rs - System statistics
 
-**API Routes** (`velocitypay-api/src/routes/`):
+**API Routes** (`velopay-api/src/routes/`):
 - mod.rs - Routes module exports
 - auth.rs - Auth endpoints
 - wallet.rs - Wallet endpoints
@@ -499,13 +499,13 @@ The following files need to be created to complete the system:
 - kyc.rs - KYC endpoints
 - admin.rs - Admin endpoints
 
-**API Middleware** (`velocitypay-api/src/middleware/`):
+**API Middleware** (`velopay-api/src/middleware/`):
 - mod.rs - Middleware module exports
 - auth.rs - JWT authentication middleware
 - rate_limit.rs - Rate limiting implementation
 - logging.rs - Request/response logging
 
-**Frontend Application** (`velocitypay-web/`):
+**Frontend Application** (`velopay-web/`):
 - Complete SvelteKit project structure
 - All pages and components
 - API client integration
