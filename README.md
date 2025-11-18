@@ -1,4 +1,4 @@
-# VelocityPay
+# Velocity Pay
 
 Professional blockchain-based payment system with fiat-backed stablecoin (VPC).
 
