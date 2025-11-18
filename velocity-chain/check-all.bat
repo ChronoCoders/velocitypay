@@ -4,8 +4,6 @@ echo VelocityPay Complete Verification
 echo ========================================
 
 set OPENSSL_VENDORED=1
-set CARGO_TERM_QUIET=false
-set RUSTFLAGS=-A future_incompatible
 
 echo.
 echo [1/10] Checking compilation...
