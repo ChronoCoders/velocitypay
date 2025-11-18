@@ -144,15 +144,13 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         &config.chain_spec,
     );
 
-    let (_peer_store, peer_store_handle) = sc_network::peer_store::PeerStore::new(
-        sc_network::peer_store::PeerStoreProvider::default_config(),
-    );
+    let peer_store = sc_network::peer_store::PeerStore::new(vec![]);
 
     let (grandpa_protocol_config, grandpa_notification_service) =
         sc_consensus_grandpa::grandpa_peers_set_config::<_, sc_network::NetworkWorker<_, _>>(
             grandpa_protocol_name.clone(),
             sc_network::config::NotificationMetrics::new(config.prometheus_registry()),
-            Arc::new(peer_store_handle),
+            Arc::new(peer_store.handle()),
         );
 
     net_config.add_notification_protocol(grandpa_protocol_config);
