@@ -37,21 +37,21 @@ run-bob.bat
 - Bob RPC: http://localhost:9945
 - Simulates a real network environment
 
-## Connecting to Your Chain
+## Testing Your Chain
 
-### Using Polkadot.js Apps (Web UI)
+### Direct RPC Testing (Recommended)
 
-1. Open https://polkadot.js.org/apps
-2. Click top-left corner → "Development" → "Local Node"
-3. Or manually connect to: `ws://127.0.0.1:9944`
+Use the provided test scripts to interact with your chain directly:
 
-You can now:
-- View blocks being produced
-- Check account balances
-- Submit transactions
-- Interact with your custom pallets (VelocityPay, KYC, Compliance)
+```bash
+# Test all RPC endpoints
+test-rpc.bat
 
-### Using cURL (RPC)
+# Or use Python
+python test-chain.py
+```
+
+### Manual RPC Calls
 
 Check chain info:
 ```bash
@@ -75,6 +75,17 @@ Your development chain comes with pre-funded test accounts:
 - **Ferdie**: 5CiPPseXPECbkjWCa6MnjNokrgYjMqmKndv2rSnekmSK2DjL
 
 All accounts start with 1,000,000 tokens.
+
+### Optional: Using Polkadot.js Apps (Generic UI)
+
+**Note**: Polkadot.js Apps is just a generic Substrate blockchain explorer - VelocityPay is NOT part of Polkadot. This is purely an optional development tool.
+
+If you want a visual interface for testing:
+1. Open https://polkadot.js.org/apps
+2. Click top-left → "Development" → "Local Node"
+3. Connect to `ws://127.0.0.1:9944`
+
+**For production**: Build your own custom frontend (see CUSTOM-FRONTEND.md)
 
 ## Testing Custom Pallets
 
