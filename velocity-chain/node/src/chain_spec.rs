@@ -1,15 +1,15 @@
+use sc_chain_spec::Properties;
 use sc_service::ChainType;
+use serde_json::json;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use velocity_runtime::{
-    AccountId, AuraConfig, BalancesConfig, ComplianceConfig, GenesisConfig, GrandpaConfig,
-    KYCConfig, RuntimeGenesisConfig, Signature, SudoConfig, SystemConfig, VelocityPayConfig, UNIT,
-    WASM_BINARY,
+    AccountId, RuntimeGenesisConfig, Signature, UNIT, WASM_BINARY,
 };
 
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
+pub type ChainSpec = sc_service::GenericChainSpec<()>;
 
 pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
     (get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
@@ -32,111 +32,94 @@ where
 
 pub fn development_config() -> Result<ChainSpec, String> {
     let wasm_binary = WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?;
+    let wasm_binary = wasm_binary.to_vec();
 
-    Ok(ChainSpec::from_genesis(
-        "Development",
-        "dev",
-        ChainType::Development,
-        move || {
-            testnet_genesis(
-                wasm_binary,
-                vec![authority_keys_from_seed("Alice")],
-                get_account_id_from_seed::<sr25519::Public>("Alice"),
-                vec![
-                    get_account_id_from_seed::<sr25519::Public>("Alice"),
-                    get_account_id_from_seed::<sr25519::Public>("Bob"),
-                    get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-                    get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-                ],
-                true,
-            )
-        },
-        vec![],
+    Ok(ChainSpec::builder(
+        wasm_binary,
         None,
-        None,
-        None,
-        None,
-        None,
+    )
+    .with_name("Development")
+    .with_id("dev")
+    .with_chain_type(ChainType::Development)
+    .with_genesis_config_patch(testnet_genesis_patch(
+        vec![authority_keys_from_seed("Alice")],
+        get_account_id_from_seed::<sr25519::Public>("Alice"),
+        vec![
+            get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+            get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+            get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+        ],
+        true,
     ))
+    .build())
 }
 
 pub fn local_testnet_config() -> Result<ChainSpec, String> {
     let wasm_binary = WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?;
+    let wasm_binary = wasm_binary.to_vec();
 
-    Ok(ChainSpec::from_genesis(
-        "Local Testnet",
-        "local_testnet",
-        ChainType::Local,
-        move || {
-            testnet_genesis(
-                wasm_binary,
-                vec![
-                    authority_keys_from_seed("Alice"),
-                    authority_keys_from_seed("Bob"),
-                ],
-                get_account_id_from_seed::<sr25519::Public>("Alice"),
-                vec![
-                    get_account_id_from_seed::<sr25519::Public>("Alice"),
-                    get_account_id_from_seed::<sr25519::Public>("Bob"),
-                    get_account_id_from_seed::<sr25519::Public>("Charlie"),
-                    get_account_id_from_seed::<sr25519::Public>("Dave"),
-                    get_account_id_from_seed::<sr25519::Public>("Eve"),
-                    get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-                ],
-                true,
-            )
-        },
-        vec![],
+    Ok(ChainSpec::builder(
+        wasm_binary,
         None,
-        None,
-        None,
-        None,
-        None,
+    )
+    .with_name("Local Testnet")
+    .with_id("local_testnet")
+    .with_chain_type(ChainType::Local)
+    .with_genesis_config_patch(testnet_genesis_patch(
+        vec![
+            authority_keys_from_seed("Alice"),
+            authority_keys_from_seed("Bob"),
+        ],
+        get_account_id_from_seed::<sr25519::Public>("Alice"),
+        vec![
+            get_account_id_from_seed::<sr25519::Public>("Alice"),
+            get_account_id_from_seed::<sr25519::Public>("Bob"),
+            get_account_id_from_seed::<sr25519::Public>("Charlie"),
+            get_account_id_from_seed::<sr25519::Public>("Dave"),
+            get_account_id_from_seed::<sr25519::Public>("Eve"),
+            get_account_id_from_seed::<sr25519::Public>("Ferdie"),
+        ],
+        true,
     ))
+    .build())
 }
 
-fn testnet_genesis(
-    wasm_binary: &[u8],
+fn testnet_genesis_patch(
     initial_authorities: Vec<(AuraId, GrandpaId)>,
     root_key: AccountId,
     endowed_accounts: Vec<AccountId>,
     _enable_println: bool,
-) -> RuntimeGenesisConfig {
-    RuntimeGenesisConfig {
-        system: SystemConfig {
-            code: wasm_binary.to_vec(),
-            ..Default::default()
-        },
-        balances: BalancesConfig {
-            balances: endowed_accounts
+) -> serde_json::Value {
+    json!({
+        "balances": {
+            "balances": endowed_accounts
                 .iter()
                 .cloned()
                 .map(|k| (k, 1_000_000 * UNIT))
-                .collect(),
+                .collect::<Vec<_>>(),
         },
-        aura: AuraConfig {
-            authorities: initial_authorities.iter().map(|x| (x.0.clone())).collect(),
+        "aura": {
+            "authorities": initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
         },
-        grandpa: GrandpaConfig {
-            authorities: initial_authorities
+        "grandpa": {
+            "authorities": initial_authorities
                 .iter()
                 .map(|x| (x.1.clone(), 1))
-                .collect(),
-            ..Default::default()
+                .collect::<Vec<_>>(),
         },
-        sudo: SudoConfig {
-            key: Some(root_key.clone()),
+        "sudo": {
+            "key": Some(root_key.clone()),
         },
-        transaction_payment: Default::default(),
-        velocity_pay: VelocityPayConfig {
-            mint_authority: Some(root_key.clone()),
-            transaction_fee_basis_points: 10,
+        "velocityPay": {
+            "mintAuthority": Some(root_key.clone()),
+            "transactionFeeBasisPoints": 10,
         },
-        kyc: KYCConfig {
-            kyc_verifier: Some(root_key.clone()),
+        "kyc": {
+            "kycVerifier": Some(root_key.clone()),
         },
-        compliance: ComplianceConfig {
-            compliance_officer: Some(root_key),
+        "compliance": {
+            "complianceOfficer": Some(root_key),
         },
-    }
+    })
 }
