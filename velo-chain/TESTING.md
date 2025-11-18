@@ -1,4 +1,4 @@
-# VelocityPay Blockchain Testing Guide
+# VeloPay Blockchain Testing Guide
 
 ## Quick Start
 
@@ -78,7 +78,7 @@ All accounts start with 1,000,000 tokens.
 
 ### Optional: Using Polkadot.js Apps (Generic UI)
 
-**Note**: Polkadot.js Apps is just a generic Substrate blockchain explorer - VelocityPay is NOT part of Polkadot. This is purely an optional development tool.
+**Note**: Polkadot.js Apps is just a generic Substrate blockchain explorer - VeloPay is NOT part of Polkadot. This is purely an optional development tool.
 
 If you want a visual interface for testing:
 1. Open https://polkadot.js.org/apps
@@ -89,7 +89,7 @@ If you want a visual interface for testing:
 
 ## Testing Custom Pallets
 
-### VelocityPay Pallet
+### VeloPay Pallet
 Your stablecoin functionality. Test:
 - Minting stablecoins
 - Transferring stablecoins
@@ -132,7 +132,7 @@ The node will output logs to the console. Look for:
 ### Clean Chain Data
 To start fresh (removes all blocks and state):
 ```bash
-target\release\velocity-node purge-chain --dev
+target\release\velo-node purge-chain --dev
 ```
 
 Or manually delete:
@@ -174,9 +174,9 @@ If you get "Address already in use":
 ## Production Deployment
 
 When ready for production:
-1. Generate new chain spec: `velocity-node build-spec --chain dev > custom-spec.json`
+1. Generate new chain spec: `velo-node build-spec --chain dev > custom-spec.json`
 2. Edit `custom-spec.json` with your validators and config
-3. Convert to raw: `velocity-node build-spec --chain custom-spec.json --raw > custom-spec-raw.json`
+3. Convert to raw: `velo-node build-spec --chain custom-spec.json --raw > custom-spec-raw.json`
 4. Run nodes with: `--chain custom-spec-raw.json`
 5. Remove `--dev`, `--tmp`, `--alice` flags
 6. Use proper validator keys

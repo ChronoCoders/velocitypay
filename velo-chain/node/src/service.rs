@@ -9,7 +9,7 @@ use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_runtime::traits::Block as BlockT;
 use std::{sync::Arc, time::Duration};
-use velocity_runtime::{self, opaque::Block, RuntimeApi};
+use velo_runtime::{self, opaque::Block, RuntimeApi};
 
 pub type FullClient =
     sc_service::TFullClient<Block, RuntimeApi, WasmExecutor>;

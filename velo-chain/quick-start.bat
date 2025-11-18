@@ -1,7 +1,7 @@
 @echo off
-REM Quickest way to start VelocityPay - uses local chain instead of dev
+REM Quickest way to start VeloPay - uses local chain instead of dev
 
-echo VelocityPay - Quick Start
+echo VeloPay - Quick Start
 echo ============================
 echo.
 echo Starting local chain with Alice as validator...
@@ -14,7 +14,7 @@ echo Press Ctrl+C to stop
 echo.
 
 REM Use --tmp for temporary storage, local chain type, Alice validator
-target\release\velocity-node.exe ^
+target\release\velo-node.exe ^
   --chain local ^
   --alice ^
   --tmp ^

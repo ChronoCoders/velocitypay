@@ -1,7 +1,7 @@
 @echo off
 REM Start local testnet node (avoids GenesisBuilder error)
 
-echo VelocityPay - Local Testnet Node
+echo VeloPay - Local Testnet Node
 echo ====================================
 echo.
 
@@ -26,13 +26,13 @@ echo Press Ctrl+C to stop
 echo.
 
 REM Purge old chain
-target\release\velocity-node.exe purge-chain --chain chain-spec-raw.json --base-path .\chain-data\alice -y 2>nul
+target\release\velo-node.exe purge-chain --chain chain-spec-raw.json --base-path .\chain-data\alice -y 2>nul
 
 REM Create directory
 if not exist "chain-data\alice" mkdir "chain-data\alice"
 
 REM Start node
-target\release\velocity-node.exe ^
+target\release\velo-node.exe ^
   --base-path .\chain-data\alice ^
   --chain chain-spec-raw.json ^
   --alice ^

@@ -1,8 +1,8 @@
 @echo off
-REM Run VelocityPay blockchain as Alice validator
+REM Run VeloPay blockchain as Alice validator
 REM This creates a persistent chain in the data directory
 
-echo Starting VelocityPay as Alice (Validator)...
+echo Starting VeloPay as Alice (Validator)...
 echo Data directory: .\chain-data\alice
 echo RPC endpoint: http://localhost:9944
 echo.
@@ -10,7 +10,7 @@ echo.
 REM Create chain-data directory if it doesn't exist
 if not exist "chain-data\alice" mkdir "chain-data\alice"
 
-target\release\velocity-node.exe ^
+target\release\velo-node.exe ^
   --base-path .\chain-data\alice ^
   --chain dev ^
   --alice ^

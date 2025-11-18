@@ -2,11 +2,11 @@
 REM Generate custom chain specification
 REM This creates a chain spec that doesn't require GenesisBuilder
 
-echo Generating VelocityPay Chain Specification...
+echo Generating VeloPay Chain Specification...
 echo.
 
 REM Generate local testnet spec (works better than dev)
-target\release\velocity-node.exe build-spec --chain local --disable-default-bootnode > chain-spec.json
+target\release\velo-node.exe build-spec --chain local --disable-default-bootnode > chain-spec.json
 
 if errorlevel 1 (
     echo [ERROR] Failed to generate chain spec
@@ -19,7 +19,7 @@ echo.
 
 REM Convert to raw format (required for running)
 echo Converting to raw format...
-target\release\velocity-node.exe build-spec --chain chain-spec.json --raw > chain-spec-raw.json
+target\release\velo-node.exe build-spec --chain chain-spec.json --raw > chain-spec-raw.json
 
 if errorlevel 1 (
     echo [ERROR] Failed to convert to raw format

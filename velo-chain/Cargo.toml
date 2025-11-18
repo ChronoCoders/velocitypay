@@ -2,16 +2,16 @@
 members = [
     "node",
     "runtime",
-    "pallets/velocitypay",
+    "pallets/velopay",
     "pallets/kyc",
     "pallets/compliance",
 ]
 resolver = "2"
 
 [workspace.package]
-authors = ["VelocityPay Team"]
+authors = ["VeloPay Team"]
 edition = "2021"
-repository = "https://github.com/velocitypay/velocity-chain"
+repository = "https://github.com/velocitypay/velo-chain"
 license = "Apache-2.0"
 
 [workspace.dependencies]

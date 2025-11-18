@@ -1,4 +1,4 @@
-# VelocityPay - Build & Run Guide
+# VeloPay - Build & Run Guide
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ rustup component add rust-src
 ## Build
 
 ```powershell
-cd velocity-chain
+cd velo-chain
 
 # Windows: Set environment variable
 $env:OPENSSL_VENDORED = "1"
@@ -29,7 +29,7 @@ cargo clippy
 # 3. Build release binary
 cargo build --release
 
-# Binary created at: target\release\velocity-node.exe
+# Binary created at: target\release\velo-node.exe
 ```
 
 **Build time**: 15-45 minutes (first build), 2-5 minutes (incremental)
@@ -89,7 +89,7 @@ python test-chain.py
 
 ```powershell
 # Check the build succeeded
-dir target\release\velocity-node.exe
+dir target\release\velo-node.exe
 
 # Should show ~68 MB binary file
 ```

@@ -66,8 +66,8 @@ pub const fn deposit(items: u32, bytes: u32) -> Balance {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: create_runtime_str!("velocity-chain"),
-    impl_name: create_runtime_str!("velocity-chain"),
+    spec_name: create_runtime_str!("velo-chain"),
+    impl_name: create_runtime_str!("velo-chain"),
     authoring_version: 1,
     spec_version: 100,
     impl_version: 1,
@@ -231,7 +231,7 @@ parameter_types! {
     pub const MaxTransactionFee: u32 = 1000; // 10% max fee (in basis points)
 }
 
-impl pallet_velocitypay::Config for Runtime {
+impl pallet_velopay::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type Currency = Balances;
     type KycVerification = KYC;
@@ -270,7 +270,7 @@ construct_runtime!(
         Sudo: pallet_sudo,
         Multisig: pallet_multisig,
         Utility: pallet_utility,
-        VelocityPay: pallet_velocitypay,
+        VeloPay: pallet_velopay,
         KYC: pallet_kyc,
         Compliance: pallet_compliance,
     }

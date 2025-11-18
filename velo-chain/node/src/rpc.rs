@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use velocity_runtime::{opaque::Block, AccountId, Balance, Nonce};
+use velo_runtime::{opaque::Block, AccountId, Balance, Nonce};
 
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
