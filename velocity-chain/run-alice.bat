@@ -18,4 +18,5 @@ target\release\velocity-node.exe ^
   --rpc-port 9944 ^
   --rpc-external ^
   --rpc-cors all ^
-  --validator
+  --validator ^
+  --unsafe-force-node-key-generation

@@ -22,4 +22,5 @@ target\release\velocity-node.exe ^
   --rpc-external ^
   --rpc-cors all ^
   --validator ^
-  --rpc-methods Unsafe
+  --rpc-methods Unsafe ^
+  --unsafe-force-node-key-generation
