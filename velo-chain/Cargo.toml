@@ -9,9 +9,9 @@ members = [
 resolver = "2"
 
 [workspace.package]
-authors = ["VeloPay Team"]
+authors = ["ChronoCoders"]
 edition = "2021"
-repository = "https://github.com/velocitypay/velo-chain"
+repository = "https://github.com/ChronoCoders/velopay"
 license = "Apache-2.0"
 
 [workspace.dependencies]
