@@ -134,13 +134,20 @@ impl frame_system::Config for Runtime {
     type SS58Prefix = SS58Prefix;
     type OnSetCode = ();
     type MaxConsumers = ConstU32<16>;
+    type RuntimeTask = ();
+    type SingleBlockMigrations = ();
+    type MultiBlockMigrator = ();
+    type PreInherents = ();
+    type PostInherents = ();
+    type PostTransactions = ();
 }
 
 impl pallet_aura::Config for Runtime {
     type AuthorityId = AuraId;
     type DisabledValidators = ();
     type MaxAuthorities = ConstU32<32>;
-    type AllowMultipleBlocksPerSlot = ConstU32<0>;
+    type AllowMultipleBlocksPerSlot = frame_support::traits::ConstBool<false>;
+    type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Runtime>;
 }
 
 impl pallet_grandpa::Config for Runtime {
@@ -150,6 +157,7 @@ impl pallet_grandpa::Config for Runtime {
     type MaxSetIdSessionEntries = ConstU64<0>;
     type KeyOwnerProof = sp_core::Void;
     type EquivocationReportSystem = ();
+    type MaxNominators = ConstU32<0>;
 }
 
 parameter_types! {
@@ -182,7 +190,7 @@ impl pallet_balances::Config for Runtime {
     type FreezeIdentifier = ();
     type MaxFreezes = ();
     type RuntimeHoldReason = ();
-    type MaxHolds = ();
+    type RuntimeFreezeReason = ();
 }
 
 parameter_types! {
@@ -239,13 +247,8 @@ impl pallet_velocitypay::Config for Runtime {
     type MaxTransactionFee = MaxTransactionFee;
 }
 
-parameter_types! {
-    pub const MaxDocumentHashLength: u32 = 128;
-}
-
 impl pallet_kyc::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type MaxDocumentHashLength = MaxDocumentHashLength;
 }
 
 parameter_types! {
@@ -328,7 +331,7 @@ impl_runtime_apis! {
             Executive::execute_block(block);
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }
