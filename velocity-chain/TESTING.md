@@ -5,7 +5,7 @@
 ### Option 1: Development Mode (Simplest)
 Run a temporary single-node chain for quick testing:
 ```bash
-run-dev.bat
+quick-start.bat
 ```
 - Auto-starts with Alice as validator
 - Temporary storage (deleted on exit)

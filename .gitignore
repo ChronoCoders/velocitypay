@@ -1,36 +1,36 @@
-# ==============================================
 # VelocityPay - Blockchain Payment System
 # ==============================================
 
 # Environment Variables & Secrets
-# ==============================================
 .env
 .env.*
 !.env.example
 *.env
 .envrc
 
-# API Keys, Secrets & Configuration
+# API Keys & Secrets
 config/secrets.yml
 config/credentials.yml.enc
 secrets.json
 api-keys.json
-chain-spec.json
-chain-spec-raw.json
 
 # Blockchain / Substrate Specific
-# ==============================================
 # Chain data and database
 /data/
 **/data/
 velocity-chain/data/
+velocity-chain/chain-data/
 db/
 *.db
 *.sqlite
 *.sqlite3
 
 # Chain specifications (if they contain sensitive data)
+chain-spec.json
+chain-spec-raw.json
 *-raw.json
+dev-spec.json
+dev-spec-raw.json
 
 # Keystore files (CRITICAL - contains validator keys!)
 keystore/
@@ -40,14 +40,12 @@ keystore/
 # Substrate build artifacts
 target/
 **/target/
-Cargo.lock
 
-# Runtime WASM files (usually rebuilt)
+# Runtime WASM files
 runtime/wasm/target/
 **/wasm/target/
 
 # Rust
-# ==============================================
 **/*.rs.bk
 **/*.pdb
 *.rlib
@@ -57,7 +55,6 @@ runtime/wasm/target/
 debug/
 build/
 deps/
-examples/
 incremental/
 
 # Testing
@@ -66,26 +63,22 @@ incremental/
 *.gcno
 *.profdata
 
-# API Gateway (Rust/Actix)
-# ==============================================
+# API Gateway
 velocitypay-api/target/
 velocitypay-api/Cargo.lock
 velocitypay-api/.env
 velocitypay-api/.env.local
 
 # Database
-# ==============================================
 *.sql.backup
 dump.sql
 backup/
-migrations/*.sql.backup
 
 # PostgreSQL
 *.pgsql
 pgdata/
 
-# Node.js / Frontend (SvelteKit)
-# ==============================================
+# Node.js / Frontend
 node_modules/
 .npm
 .yarn
@@ -116,7 +109,6 @@ velocitypay-web/.env.*
 !velocitypay-web/.env.example
 
 # IDEs & Editors
-# ==============================================
 .vscode/
 !.vscode/settings.json.example
 !.vscode/extensions.json
@@ -129,76 +121,38 @@ velocitypay-web/.env.*
 .project
 .classpath
 .settings/
-.factorypath
-
-# JetBrains
-*.iml
-.idea/
-*.ipr
-*.iws
-
-# Visual Studio Code
-.vscode/*
-!.vscode/tasks.json
-!.vscode/launch.json
 
 # Operating Systems
-# ==============================================
 # macOS
 .DS_Store
 .AppleDouble
 .LSOverride
 ._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
 
 # Windows
 Thumbs.db
-Thumbs.db:encryptable
 ehthumbs.db
-ehthumbs_vista.db
 Desktop.ini
 $RECYCLE.BIN/
 *.lnk
 
 # Linux
-*~
 .directory
 .Trash-*
 
 # Logs
-# ==============================================
 logs/
-*.log
 log/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Runtime logs
+*.log
 validator-*.log
 node-*.log
 api-*.log
 
 # Docker
-# ==============================================
-.dockerignore
 docker-compose.override.yml
-*.tar
-*.tar.gz
-
-# Docker volumes
 volumes/
 
-# Security & Cryptography
-# ==============================================
-# Private keys (CRITICAL!)
+# Security & Cryptography (CRITICAL!)
 *.key
 *.pem
 *.p12
@@ -208,46 +162,27 @@ volumes/
 private-keys/
 keys/
 *.keystore
-
-# Cryptocurrency wallets
 *.wallet
 wallets/
 mnemonics/
 seed-phrases/
-
-# SSL/TLS
 ssl/
 certs/
-certificates/
-
-# JWT secrets
 jwt-secret.txt
 *.secret
 
 # Monitoring & Deployment
-# ==============================================
-# Prometheus
 prometheus/
 prometheus.yml
-
-# Grafana
 grafana/
-
-# Kubernetes secrets
 *secret*.yaml
 *-secret.yaml
-
-# Terraform
 *.tfstate
 *.tfstate.*
 *.tfvars
 .terraform/
 
-# Ansible
-*.retry
-
 # Backup & Temporary Files
-# ==============================================
 *.bak
 *.backup
 *.tmp
@@ -255,7 +190,6 @@ grafana/
 *.old
 *.orig
 *.save
-*~
 backup/
 tmp/
 temp/
@@ -267,7 +201,6 @@ temp/
 *.7z
 
 # Testing & Coverage
-# ==============================================
 coverage/
 .nyc_output/
 *.lcov
@@ -277,62 +210,39 @@ htmlcov/
 .tox/
 
 # Documentation Build
-# ==============================================
 docs/_build/
 docs/.doctrees/
 target/doc/
 site/
 
 # Cache
-# ==============================================
 .cache/
 *.cache
 .parcel-cache/
-
-# Rust Cache
 .cargo-cache/
 
-# Custom Project Specific
-# ==============================================
-# Validator configuration (may contain sensitive info)
+# Project Specific
 validator-config.json
 validator-*.json
-
-# Reserve audit files
 reserve-audit-*.json
 reserve-proof-*.pdf
-
-# KYC Documents (NEVER commit these!)
 kyc-documents/
 uploads/
 user-documents/
-
-# Transaction logs (may contain PII)
 transaction-logs/
 audit-trail/
-
-# Compliance reports
 compliance-reports/
 aml-reports/
-
-# Development databases
 dev.db
 test.db
 local.db
-
-# Load testing results
 load-test-results/
 stress-test-results/
-
-# Build artifacts
 *.wasm
 *.wat
 
-# ==============================================
-# Important Notes:
-# - NEVER commit private keys, seeds, or keystores
-# - NEVER commit .env files with real credentials
-# - NEVER commit KYC documents or user data
-# - NEVER commit validator keys or chain specs with sensitive data
-# - Always use .env.example as template
-# ==============================================
+# NEVER commit:
+# - Private keys, seeds, or keystores
+# - .env files with real credentials
+# - KYC documents or user data
+# - Validator keys or sensitive chain specs
