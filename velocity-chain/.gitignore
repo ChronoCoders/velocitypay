@@ -1,0 +1,39 @@
+# Rust build artifacts
+target/
+**/*.rs.bk
+*.pdb
+
+# Cargo lock files (keep for applications)
+# Cargo.lock is tracked for this project
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Chain data directories
+chain-data/
+db/
+.local/
+
+# Temporary files
+*.tmp
+*.log
+*.temp
+
+# WASM build artifacts
+runtime/wasm/
+runtime/target/
+
+# Node modules (if any)
+node_modules/
+
+# Environment files
+.env
+.env.local

@@ -7,6 +7,7 @@ use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
+use sp_runtime::traits::Block as BlockT;
 use std::{sync::Arc, time::Duration};
 use velocity_runtime::{self, opaque::Block, RuntimeApi};
 
@@ -133,7 +134,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         other: (block_import, grandpa_link, mut telemetry),
     } = new_partial(&config)?;
 
-    let mut net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
+    let mut net_config = sc_network::config::FullNetworkConfiguration::<Block, <Block as BlockT>::Hash, sc_network::NetworkWorker<Block, <Block as BlockT>::Hash>>::new(&config.network);
 
     let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
         &client
@@ -144,13 +145,13 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         &config.chain_spec,
     );
 
+    let peer_store = sc_network::peer_store::PeerStore::new(vec![]);
+
     let (grandpa_protocol_config, grandpa_notification_service) =
-        sc_consensus_grandpa::grandpa_peers_set_config::<_, sc_network::NetworkWorker<_, _>>(
+        sc_consensus_grandpa::grandpa_peers_set_config::<Block, sc_network::NetworkWorker<Block, <Block as BlockT>::Hash>>(
             grandpa_protocol_name.clone(),
             sc_network::config::NotificationMetrics::new(config.prometheus_registry()),
-            Arc::new(sc_network::peer_store::PeerStoreHandle::new(
-                Default::default(),
-            )),
+            Arc::new(peer_store.handle()),
         );
 
     net_config.add_notification_protocol(grandpa_protocol_config);
