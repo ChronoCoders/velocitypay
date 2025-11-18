@@ -1,0 +1,14 @@
+# Cargo configuration for VelocityPay build
+
+[net]
+# Increase timeout for slow networks (in seconds)
+git-fetch-with-cli = true
+retry = 3
+
+[http]
+timeout = 120  # 2 minutes instead of 30 seconds
+multiplexing = false
+
+[build]
+# Use incremental compilation for faster rebuilds
+incremental = true
