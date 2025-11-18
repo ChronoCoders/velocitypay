@@ -202,16 +202,23 @@ cargo build --release
 cd velocity-chain
 
 rustup target add wasm32-unknown-unknown
+rustup component add rust-src
 
 # Set environment variable for vendored OpenSSL
 $env:OPENSSL_VENDORED = "1"
 
 cargo build --release
 
-.\target\release\velocity-node.exe --dev
+# Run with helper script
+.\quick-start.bat
+
+# Or run manually
+.\target\release\velocity-node.exe --chain local --alice --tmp --rpc-external --rpc-cors all
 ```
 
-**Build time**: 15-30 minutes on first build (longer on Windows)
+**Build time**: 15-45 minutes on first build
+
+**See `velocity-chain/BUILD.md` for detailed build instructions and troubleshooting.**
 
 ### Build API Gateway
 
