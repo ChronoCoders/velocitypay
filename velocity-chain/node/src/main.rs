@@ -52,9 +52,6 @@ pub struct Cli {
 
 #[derive(Debug, clap::Subcommand)]
 pub enum Subcommand {
-    #[command(name = "key", about = "Key management cli utilities")]
-    Key(sc_cli::KeySubcommand),
-
     #[command(name = "build-spec", about = "Build a chain specification")]
     BuildSpec(sc_cli::BuildSpecCmd),
 
@@ -78,24 +75,12 @@ pub enum Subcommand {
 
     #[command(name = "revert", about = "Revert the chain to a previous state")]
     Revert(sc_cli::RevertCmd),
-
-    #[command(name = "benchmark", about = "Benchmark runtime pallets.")]
-    #[cfg(feature = "runtime-benchmarks")]
-    Benchmark(frame_benchmarking_cli::BenchmarkCmd),
-
-    #[command(
-        name = "try-runtime",
-        about = "Try some command against runtime state."
-    )]
-    #[cfg(feature = "try-runtime")]
-    TryRuntime(try_runtime_cli::TryRuntimeCmd),
 }
 
 fn main() -> sc_cli::Result<()> {
     let cli = <Cli as clap::Parser>::parse();
 
     match &cli.subcommand {
-        Some(Subcommand::Key(cmd)) => cmd.run(&cli),
         Some(Subcommand::BuildSpec(cmd)) => {
             let runner = cli.create_runner(cmd)?;
             runner.sync_run(|config| cmd.run(config.chain_spec, config.network))
@@ -164,33 +149,6 @@ fn main() -> sc_cli::Result<()> {
                     Ok(())
                 });
                 Ok((cmd.run(client, backend, Some(aux_revert)), task_manager))
-            })
-        }
-        #[cfg(feature = "runtime-benchmarks")]
-        Some(Subcommand::Benchmark(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-
-            runner.sync_run(|config| {
-                if let frame_benchmarking_cli::BenchmarkCmd::Pallet(cmd) = cmd {
-                    cmd.run::<velocity_runtime::Block, service::ExecutorDispatch>(config)
-                } else {
-                    Err("Benchmarking sub-command unsupported".into())
-                }
-            })
-        }
-        #[cfg(feature = "try-runtime")]
-        Some(Subcommand::TryRuntime(cmd)) => {
-            let runner = cli.create_runner(cmd)?;
-            runner.async_run(|config| {
-                let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
-                let task_manager =
-                    sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
-                        .map_err(|e| sc_cli::Error::Service(sc_service::Error::Prometheus(e)))?;
-
-                Ok((
-                    cmd.run::<velocity_runtime::Block, service::ExecutorDispatch>(config),
-                    task_manager,
-                ))
             })
         }
         None => {

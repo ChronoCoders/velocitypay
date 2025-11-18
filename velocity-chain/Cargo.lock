@@ -5511,6 +5511,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "pallet-compliance",
  "pallet-kyc",
  "parity-scale-codec",
  "scale-info",

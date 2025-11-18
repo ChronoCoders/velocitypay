@@ -2,7 +2,7 @@ use futures::FutureExt;
 use sc_client_api::BlockBackend;
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_consensus_grandpa::SharedVoterState;
-use sc_executor::NativeElseWasmExecutor;
+use sc_executor::WasmExecutor;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -10,22 +10,8 @@ use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use std::{sync::Arc, time::Duration};
 use velocity_runtime::{self, opaque::Block, RuntimeApi};
 
-pub struct ExecutorDispatch;
-
-impl sc_executor::NativeExecutionDispatch for ExecutorDispatch {
-    type ExtendHostFunctions = ();
-
-    fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-        velocity_runtime::api::dispatch(method, data)
-    }
-
-    fn native_version() -> sc_executor::NativeVersion {
-        velocity_runtime::native_version()
-    }
-}
-
 pub type FullClient =
-    sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<ExecutorDispatch>>;
+    sc_service::TFullClient<Block, RuntimeApi, WasmExecutor>;
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
@@ -62,7 +48,7 @@ pub fn new_partial(
         })
         .transpose()?;
 
-    let executor = sc_service::new_native_or_wasm_executor(&config);
+    let executor = sc_service::new_wasm_executor(&config);
 
     let (client, backend, keystore_container, task_manager) =
         sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -159,7 +145,13 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
     );
 
     let (grandpa_protocol_config, grandpa_notification_service) =
-        sc_consensus_grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
+        sc_consensus_grandpa::grandpa_peers_set_config::<_, sc_network::NetworkWorker<_, _>>(
+            grandpa_protocol_name.clone(),
+            sc_network::config::NotificationMetrics::new(config.prometheus_registry()),
+            Arc::new(sc_network::peer_store::PeerStoreHandle::new(
+                Default::default(),
+            )),
+        );
 
     net_config.add_notification_protocol(grandpa_protocol_config);
 
@@ -180,9 +172,11 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
             block_announce_validator_builder: None,
             warp_sync_params: Some(sc_service::WarpSyncParams::WithProvider(warp_sync)),
             block_relay: None,
+            metrics: sc_network::config::NotificationMetrics::new(config.prometheus_registry()),
         })?;
 
     if config.offchain_worker.enabled {
+        use sc_client_api::Backend;
         task_manager.spawn_handle().spawn(
             "offchain-workers-runner",
             "offchain-worker",
@@ -194,7 +188,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
                 transaction_pool: Some(OffchainTransactionPoolFactory::new(
                     transaction_pool.clone(),
                 )),
-                network_provider: network.clone(),
+                network_provider: Arc::new(network.clone()),
                 enable_http_requests: true,
                 custom_extensions: |_| vec![],
             })

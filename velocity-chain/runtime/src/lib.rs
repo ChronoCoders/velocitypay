@@ -1,11 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![recursion_limit = "256"]
+#![allow(deprecated)]
 
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use codec::{Decode, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
@@ -24,13 +23,10 @@ use sp_version::RuntimeVersion;
 
 use frame_support::{
     construct_runtime,
-    dispatch::DispatchClass,
     parameter_types,
-    traits::{ConstU128, ConstU32, ConstU64, ConstU8},
+    traits::{ConstU32, ConstU64, ConstU8},
     weights::{constants::WEIGHT_REF_TIME_PER_SECOND, IdentityFee, Weight},
-    PalletId,
 };
-use frame_system as system;
 use pallet_grandpa::{
     fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
@@ -68,6 +64,7 @@ pub const fn deposit(items: u32, bytes: u32) -> Balance {
     (items as Balance * UNIT + (bytes as Balance) * (5 * MILLIUNIT / 100)) / 10
 }
 
+#[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("velocity-chain"),
     impl_name: create_runtime_str!("velocity-chain"),
@@ -94,11 +91,6 @@ pub fn native_version() -> NativeVersion {
         can_author_with: Default::default(),
     }
 }
-
-const NORMAL_DISPATCH_MAX_WEIGHT: Weight = Weight::from_parts(
-    MAXIMUM_BLOCK_WEIGHT.ref_time() * NORMAL_DISPATCH_RATIO.deconstruct() as u64 / 100,
-    MAXIMUM_BLOCK_WEIGHT.proof_size(),
-);
 
 parameter_types! {
     pub const BlockHashCount: BlockNumber = 2400;
@@ -134,13 +126,20 @@ impl frame_system::Config for Runtime {
     type SS58Prefix = SS58Prefix;
     type OnSetCode = ();
     type MaxConsumers = ConstU32<16>;
+    type RuntimeTask = ();
+    type SingleBlockMigrations = ();
+    type MultiBlockMigrator = ();
+    type PreInherents = ();
+    type PostInherents = ();
+    type PostTransactions = ();
 }
 
 impl pallet_aura::Config for Runtime {
     type AuthorityId = AuraId;
     type DisabledValidators = ();
     type MaxAuthorities = ConstU32<32>;
-    type AllowMultipleBlocksPerSlot = ConstU32<0>;
+    type AllowMultipleBlocksPerSlot = frame_support::traits::ConstBool<false>;
+    type SlotDuration = pallet_aura::MinimumPeriodTimesTwo<Runtime>;
 }
 
 impl pallet_grandpa::Config for Runtime {
@@ -150,6 +149,7 @@ impl pallet_grandpa::Config for Runtime {
     type MaxSetIdSessionEntries = ConstU64<0>;
     type KeyOwnerProof = sp_core::Void;
     type EquivocationReportSystem = ();
+    type MaxNominators = ConstU32<0>;
 }
 
 parameter_types! {
@@ -182,7 +182,7 @@ impl pallet_balances::Config for Runtime {
     type FreezeIdentifier = ();
     type MaxFreezes = ();
     type RuntimeHoldReason = ();
-    type MaxHolds = ();
+    type RuntimeFreezeReason = ();
 }
 
 parameter_types! {
@@ -239,13 +239,8 @@ impl pallet_velocitypay::Config for Runtime {
     type MaxTransactionFee = MaxTransactionFee;
 }
 
-parameter_types! {
-    pub const MaxDocumentHashLength: u32 = 128;
-}
-
 impl pallet_kyc::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type MaxDocumentHashLength = MaxDocumentHashLength;
 }
 
 parameter_types! {
@@ -305,18 +300,6 @@ pub type Executive = frame_executive::Executive<
     AllPalletsWithSystem,
 >;
 
-#[cfg(feature = "runtime-benchmarks")]
-#[macro_use]
-extern crate frame_benchmarking;
-
-#[cfg(feature = "runtime-benchmarks")]
-mod benches {
-    define_benchmarks!(
-        [frame_system, SystemBench::<Runtime>]
-        [pallet_balances, Balances]
-        [pallet_timestamp, Timestamp]
-    );
-}
 
 impl_runtime_apis! {
     impl sp_api::Core<Block> for Runtime {
@@ -328,7 +311,7 @@ impl_runtime_apis! {
             Executive::execute_block(block);
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }
@@ -390,7 +373,7 @@ impl_runtime_apis! {
         }
 
         fn authorities() -> Vec<AuraId> {
-            Aura::authorities().into_inner()
+            pallet_aura::Authorities::<Runtime>::get().into_inner()
         }
     }
 
@@ -460,47 +443,6 @@ impl_runtime_apis! {
         }
     }
 
-    #[cfg(feature = "runtime-benchmarks")]
-    impl frame_benchmarking::Benchmark<Block> for Runtime {
-        fn benchmark_metadata(extra: bool) -> (
-            Vec<frame_benchmarking::BenchmarkList>,
-            Vec<frame_support::traits::StorageInfo>,
-        ) {
-            use frame_benchmarking::{baseline, Benchmarking, BenchmarkList};
-            use frame_support::traits::StorageInfoTrait;
-            use frame_system_benchmarking::Pallet as SystemBench;
-            use baseline::Pallet as BaselineBench;
-
-            let mut list = Vec::<BenchmarkList>::new();
-            list_benchmarks!(list, extra);
-
-            let storage_info = AllPalletsWithSystem::storage_info();
-
-            (list, storage_info)
-        }
-
-        fn dispatch_benchmark(
-            config: frame_benchmarking::BenchmarkConfig
-        ) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-            use frame_benchmarking::{baseline, Benchmarking, BenchmarkBatch};
-            use sp_storage::TrackedStorageKey;
-            use frame_system_benchmarking::Pallet as SystemBench;
-            use baseline::Pallet as BaselineBench;
-
-            impl frame_system_benchmarking::Config for Runtime {}
-            impl baseline::Config for Runtime {}
-
-            use frame_support::traits::WhitelistedStorageKeys;
-            let whitelist: Vec<TrackedStorageKey> = AllPalletsWithSystem::whitelisted_storage_keys();
-
-            let mut batches = Vec::<BenchmarkBatch>::new();
-            let params = (&config, &whitelist);
-            add_benchmarks!(params, batches);
-
-            if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
-            Ok(batches)
-        }
-    }
 
     #[cfg(feature = "try-runtime")]
     impl frame_try_runtime::TryRuntime<Block> for Runtime {
