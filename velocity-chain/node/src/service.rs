@@ -1,5 +1,5 @@
 use futures::FutureExt;
-use sc_client_api::{Backend, BlockBackend};
+use sc_client_api::BlockBackend;
 use sc_consensus_aura::{ImportQueueParams, SlotProportion, StartAuraParams};
 use sc_consensus_grandpa::SharedVoterState;
 use sc_executor::WasmExecutor;
@@ -144,12 +144,14 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         &config.chain_spec,
     );
 
-    let grandpa_protocol_config = sc_consensus_grandpa::grandpa_peers_set_config(
-        grandpa_protocol_name.clone(),
-        config.prometheus_registry().cloned().into(),
-    );
-
-    let (grandpa_protocol_config, grandpa_notification_service) = grandpa_protocol_config;
+    let (grandpa_protocol_config, grandpa_notification_service) =
+        sc_consensus_grandpa::grandpa_peers_set_config::<_, sc_network::NetworkWorker<_, _>>(
+            grandpa_protocol_name.clone(),
+            sc_network::config::NotificationMetrics::new(config.prometheus_registry()),
+            Arc::new(sc_network::peer_store::PeerStoreHandle::new(
+                Default::default(),
+            )),
+        );
 
     net_config.add_notification_protocol(grandpa_protocol_config);
 
@@ -170,7 +172,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
             block_announce_validator_builder: None,
             warp_sync_params: Some(sc_service::WarpSyncParams::WithProvider(warp_sync)),
             block_relay: None,
-            metrics: sc_network::config::NotificationMetrics::new(config.prometheus_registry().cloned().as_ref()),
+            metrics: sc_network::config::NotificationMetrics::new(config.prometheus_registry()),
         })?;
 
     if config.offchain_worker.enabled {
@@ -182,7 +184,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
                 runtime_api_provider: client.clone(),
                 is_validator: config.role.is_authority(),
                 keystore: Some(keystore_container.keystore()),
-                offchain_db: backend.offchain_storage().ok(),
+                offchain_db: backend.offchain_storage(),
                 transaction_pool: Some(OffchainTransactionPoolFactory::new(
                     transaction_pool.clone(),
                 )),

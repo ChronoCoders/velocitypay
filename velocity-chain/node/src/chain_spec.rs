@@ -1,4 +1,3 @@
-use sc_chain_spec::Properties;
 use sc_service::ChainType;
 use serde_json::json;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -6,10 +5,10 @@ use sp_consensus_grandpa::AuthorityId as GrandpaId;
 use sp_core::{sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 use velocity_runtime::{
-    AccountId, RuntimeGenesisConfig, Signature, UNIT, WASM_BINARY,
+    AccountId, Signature, UNIT, WASM_BINARY,
 };
 
-pub type ChainSpec = sc_service::GenericChainSpec<()>;
+pub type ChainSpec = sc_service::GenericChainSpec<Option<()>>;
 
 pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
     (get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
@@ -32,7 +31,6 @@ where
 
 pub fn development_config() -> Result<ChainSpec, String> {
     let wasm_binary = WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?;
-    let wasm_binary = wasm_binary.to_vec();
 
     Ok(ChainSpec::builder(
         wasm_binary,
@@ -57,7 +55,6 @@ pub fn development_config() -> Result<ChainSpec, String> {
 
 pub fn local_testnet_config() -> Result<ChainSpec, String> {
     let wasm_binary = WASM_BINARY.ok_or_else(|| "Development wasm not available".to_string())?;
-    let wasm_binary = wasm_binary.to_vec();
 
     Ok(ChainSpec::builder(
         wasm_binary,
