@@ -106,17 +106,7 @@ fn testnet_genesis_patch(
                 .collect::<Vec<_>>(),
         },
         "sudo": {
-            "key": Some(root_key.clone()),
-        },
-        "velocityPay": {
-            "mintAuthority": Some(root_key.clone()),
-            "transactionFeeBasisPoints": 10,
-        },
-        "kyc": {
-            "kycVerifier": Some(root_key.clone()),
-        },
-        "compliance": {
-            "complianceOfficer": Some(root_key),
+            "key": Some(root_key),
         },
     })
 }

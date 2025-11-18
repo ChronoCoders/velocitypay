@@ -47,6 +47,7 @@ sp-session = { default-features = false, git = "https://github.com/paritytech/po
 sp-std = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-transaction-pool = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 sp-version = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
+sp-genesis-builder = { default-features = false, git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 
 [profile.release]
 panic = "unwind"
