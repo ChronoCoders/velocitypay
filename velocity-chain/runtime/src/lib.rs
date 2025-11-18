@@ -24,13 +24,10 @@ use sp_version::RuntimeVersion;
 
 use frame_support::{
     construct_runtime,
-    dispatch::DispatchClass,
     parameter_types,
-    traits::{ConstU128, ConstU32, ConstU64, ConstU8},
+    traits::{ConstU32, ConstU64, ConstU8},
     weights::{constants::WEIGHT_REF_TIME_PER_SECOND, IdentityFee, Weight},
-    PalletId,
 };
-use frame_system as system;
 use pallet_grandpa::{
     fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
