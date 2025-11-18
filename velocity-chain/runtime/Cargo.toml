@@ -38,6 +38,7 @@ sp-session = { workspace = true }
 sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
+sp-genesis-builder = { workspace = true }
 
 pallet-velocitypay = { path = "../pallets/velocitypay", default-features = false }
 pallet-kyc = { path = "../pallets/kyc", default-features = false }
@@ -77,6 +78,7 @@ std = [
     "sp-std/std",
     "sp-transaction-pool/std",
     "sp-version/std",
+    "sp-genesis-builder/std",
     "pallet-velocitypay/std",
     "pallet-kyc/std",
     "pallet-compliance/std",
