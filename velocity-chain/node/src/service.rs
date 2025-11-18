@@ -133,7 +133,7 @@ pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
         other: (block_import, grandpa_link, mut telemetry),
     } = new_partial(&config)?;
 
-    let mut net_config = sc_network::config::FullNetworkConfiguration::new(&config.network);
+    let mut net_config = sc_network::config::FullNetworkConfiguration::<_, _, sc_network::NetworkWorker<_, _>>::new(&config.network);
 
     let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
         &client
