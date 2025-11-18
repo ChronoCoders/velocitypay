@@ -8,4 +8,4 @@ echo This will run a single-node development blockchain.
 echo Press Ctrl+C to stop the node.
 echo.
 
-target\release\velocity-node --dev --tmp --rpc-external --rpc-cors all
+target\release\velocity-node.exe --dev --tmp --rpc-external --rpc-cors all

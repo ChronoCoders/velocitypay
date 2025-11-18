@@ -9,7 +9,10 @@ echo.
 echo Make sure Alice is running first!
 echo.
 
-target\release\velocity-node ^
+REM Create chain-data directory if it doesn't exist
+if not exist "chain-data\bob" mkdir "chain-data\bob"
+
+target\release\velocity-node.exe ^
   --base-path .\chain-data\bob ^
   --chain dev ^
   --bob ^
@@ -18,4 +21,5 @@ target\release\velocity-node ^
   --rpc-external ^
   --rpc-cors all ^
   --validator ^
-  --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp
+  --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp ^
+  --unsafe-force-node-key-generation
