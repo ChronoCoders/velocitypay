@@ -4,8 +4,6 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use codec::{Decode, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
@@ -91,11 +89,6 @@ pub fn native_version() -> NativeVersion {
         can_author_with: Default::default(),
     }
 }
-
-const NORMAL_DISPATCH_MAX_WEIGHT: Weight = Weight::from_parts(
-    MAXIMUM_BLOCK_WEIGHT.ref_time() * NORMAL_DISPATCH_RATIO.deconstruct() as u64 / 100,
-    MAXIMUM_BLOCK_WEIGHT.proof_size(),
-);
 
 parameter_types! {
     pub const BlockHashCount: BlockNumber = 2400;
@@ -378,7 +371,7 @@ impl_runtime_apis! {
         }
 
         fn authorities() -> Vec<AuraId> {
-            Aura::authorities().into_inner()
+            pallet_aura::Authorities::<Runtime>::get().into_inner()
         }
     }
 
