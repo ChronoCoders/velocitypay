@@ -12,3 +12,5 @@ multiplexing = false
 [build]
 # Use incremental compilation for faster rebuilds
 incremental = true
+# Note: trie-db v0.29.1 future incompatibility warning is expected
+# It comes from Polkadot SDK stable2407 and cannot be fixed without upgrading the SDK
