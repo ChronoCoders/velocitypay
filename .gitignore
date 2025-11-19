@@ -21,6 +21,7 @@ api-keys.json
 velocity-chain/data/
 velocity-chain/chain-data/
 db/
+!velopay-api/src/db/
 *.db
 *.sqlite
 *.sqlite3
