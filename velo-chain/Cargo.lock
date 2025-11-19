@@ -5409,7 +5409,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-velocitypay"
+name = "pallet-velopay"
 version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
@@ -10343,7 +10343,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "accd4ea62f7bb7a82fe23066fb0957d48ef677f6eeb8215f372f52e48bb32426"
 
 [[package]]
-name = "velocity-node"
+name = "velo-node"
 version = "1.0.0"
 dependencies = [
  "clap",
@@ -10382,11 +10382,11 @@ dependencies = [
  "sp-timestamp",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
- "velocity-runtime",
+ "velo-runtime",
 ]
 
 [[package]]
-name = "velocity-runtime"
+name = "velo-runtime"
 version = "1.0.0"
 dependencies = [
  "frame-executive",
@@ -10405,7 +10405,7 @@ dependencies = [
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-utility",
- "pallet-velocitypay",
+ "pallet-velopay",
  "parity-scale-codec",
  "scale-info",
  "sp-api",

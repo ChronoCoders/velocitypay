@@ -1,5 +1,5 @@
 [package]
-name = "velocity-node"
+name = "velo-node"
 version = "1.0.0"
 authors.workspace = true
 edition.workspace = true
@@ -48,7 +48,7 @@ pallet-transaction-payment = { workspace = true }
 substrate-frame-rpc-system = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 pallet-transaction-payment-rpc = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }
 
-velocity-runtime = { path = "../runtime" }
+velo-runtime = { path = "../runtime" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "stable2407" }

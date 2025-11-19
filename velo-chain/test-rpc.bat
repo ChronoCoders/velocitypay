@@ -1,7 +1,7 @@
 @echo off
-REM Test VelocityPay Chain via RPC
+REM Test VeloPay Chain via RPC
 echo ========================================
-echo VelocityPay Chain RPC Testing
+echo VeloPay Chain RPC Testing
 echo ========================================
 echo.
 

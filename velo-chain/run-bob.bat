@@ -1,8 +1,8 @@
 @echo off
-REM Run VelocityPay blockchain as Bob validator
+REM Run VeloPay blockchain as Bob validator
 REM This connects to Alice to form a 2-validator network
 
-echo Starting VelocityPay as Bob (Validator)...
+echo Starting VeloPay as Bob (Validator)...
 echo Data directory: .\chain-data\bob
 echo RPC endpoint: http://localhost:9945
 echo.
@@ -12,7 +12,7 @@ echo.
 REM Create chain-data directory if it doesn't exist
 if not exist "chain-data\bob" mkdir "chain-data\bob"
 
-target\release\velocity-node.exe ^
+target\release\velo-node.exe ^
   --base-path .\chain-data\bob ^
   --chain dev ^
   --bob ^
