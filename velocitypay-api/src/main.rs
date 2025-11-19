@@ -18,7 +18,7 @@ async fn main() -> std::io::Result<()> {
     let config = Config::from_env().expect("Failed to load configuration");
     let server_address = config.server_address();
 
-    log::info!("Starting VelocityPay API Gateway");
+    log::info!("Starting VeloPay API Gateway");
     log::info!("Connecting to chain at: {}", config.chain_rpc_url);
     log::info!("Database: {}", config.database_url);
 
@@ -117,7 +117,7 @@ async fn main() -> std::io::Result<()> {
 async fn health_check() -> HttpResponse {
     HttpResponse::Ok().json(serde_json::json!({
         "status": "healthy",
-        "service": "velocitypay-api"
+        "service": "velopay-api"
     }))
 }
 

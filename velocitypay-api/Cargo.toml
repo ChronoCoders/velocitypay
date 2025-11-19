@@ -1,8 +1,8 @@
 [package]
-name = "velocitypay-api"
+name = "velopay-api"
 version = "1.0.0"
 edition = "2021"
-authors = ["VelocityPay Team"]
+authors = ["VeloPay Team"]
 
 [dependencies]
 actix-web = "4.4"
