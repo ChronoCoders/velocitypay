@@ -46,7 +46,7 @@ impl Config {
 
         Ok(Config {
             database_url: env::var("DATABASE_URL")
-                .unwrap_or_else(|_| "postgresql://localhost/velocitypay".to_string()),
+                .unwrap_or_else(|_| "postgresql://localhost/velopay".to_string()),
             chain_rpc_url: env::var("CHAIN_RPC_URL")
                 .unwrap_or_else(|_| "ws://127.0.0.1:9944".to_string()),
             server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
