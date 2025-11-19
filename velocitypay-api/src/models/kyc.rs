@@ -30,10 +30,11 @@ pub struct KYCSubmission {
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct SubmitKYCRequest {
+    pub wallet_address: Option<String>,
     pub document_hash: String,
     #[validate(length(min = 1))]
     pub full_name: String,
-    pub date_of_birth: String,
+    pub date_of_birth: String, // Format: YYYY-MM-DD
     #[validate(length(min = 2, max = 2))]
     pub country: String,
 }

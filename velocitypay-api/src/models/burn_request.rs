@@ -30,6 +30,7 @@ pub struct BurnRequest {
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateBurnRequest {
+    pub wallet_address: Option<String>,
     #[validate(length(min = 1))]
     pub amount: String,
     #[validate(length(min = 1, max = 256))]

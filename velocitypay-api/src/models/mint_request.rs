@@ -29,6 +29,7 @@ pub struct MintRequest {
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct CreateMintRequest {
+    pub wallet_address: Option<String>,
     #[validate(length(min = 1))]
     pub amount: String,
     #[validate(length(min = 1, max = 256))]

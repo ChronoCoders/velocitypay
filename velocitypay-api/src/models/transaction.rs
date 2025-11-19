@@ -27,6 +27,7 @@ pub struct Transaction {
 
 #[derive(Debug, Deserialize)]
 pub struct SendPaymentRequest {
+    pub from_address: String,
     pub to_address: String,
     pub amount: String,
 }

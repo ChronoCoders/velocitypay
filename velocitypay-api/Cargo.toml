@@ -27,8 +27,9 @@ sp-core = "21.0"
 sp-runtime = "24.0"
 sp-keyring = "24.0"
 
-sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "migrate", "rust_decimal"] }
 deadpool-postgres = "0.12"
+rust_decimal = { version = "1.33", features = ["serde", "db-postgres"] }
 
 reqwest = { version = "0.11", features = ["json"] }
 futures = "0.3"
@@ -36,6 +37,3 @@ async-trait = "0.1"
 
 actix-governor = "0.5"
 governor = "0.6"
-
-[dev-dependencies]
-actix-web-test = "0.1"
