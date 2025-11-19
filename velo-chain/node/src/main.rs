@@ -7,7 +7,7 @@ use sc_service::PartialComponents;
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
-        "Velocity Node".into()
+        "Velo Node".into()
     }
 
     fn impl_version() -> String {
