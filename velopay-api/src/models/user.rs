@@ -9,7 +9,7 @@ pub struct User {
     pub id: Uuid,
     pub email: String,
     pub password_hash: String,
-    pub wallet_address: String,
+    pub wallet_address: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -20,7 +20,7 @@ pub struct CreateUserRequest {
     pub email: String,
     #[validate(length(min = 8))]
     pub password: String,
-    pub wallet_address: String,
+    pub wallet_address: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -34,7 +34,7 @@ pub struct LoginRequest {
 pub struct UserResponse {
     pub id: Uuid,
     pub email: String,
-    pub wallet_address: String,
+    pub wallet_address: Option<String>,
     pub created_at: DateTime<Utc>,
 }
 
