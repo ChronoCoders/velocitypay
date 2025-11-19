@@ -58,6 +58,7 @@ impl AuthService {
                 email: user.email,
                 wallet_address: user.wallet_address,
                 created_at: user.created_at,
+                updated_at: user.updated_at,
             },
             token,
         })
@@ -92,6 +93,7 @@ impl AuthService {
                 email: user.email.clone(),
                 wallet_address: user.wallet_address.clone(),
                 created_at: user.created_at,
+                updated_at: user.updated_at,
             },
             token,
         })
@@ -111,6 +113,7 @@ impl AuthService {
             email: user.email,
             wallet_address: user.wallet_address,
             created_at: user.created_at,
+            updated_at: user.updated_at,
         })
     }
 
@@ -137,6 +140,7 @@ impl AuthService {
             email: user.email,
             wallet_address: user.wallet_address,
             created_at: user.created_at,
+            updated_at: user.updated_at,
         })
     }
 

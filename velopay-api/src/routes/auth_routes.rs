@@ -2,7 +2,7 @@ use actix_web::{web, HttpRequest, HttpResponse, Result};
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::middleware::auth::get_user_id;
+use crate::middleware::auth::{get_user_id, get_claims};
 use crate::models::user::{CreateUserRequest, LoginRequest};
 use crate::services::AuthService;
 
@@ -88,12 +88,24 @@ async fn update_wallet(
     }
 }
 
+/// Get JWT token claims info (requires authentication)
+async fn get_token_info(req: HttpRequest) -> Result<HttpResponse> {
+    let claims = get_claims(&req)?;
+
+    Ok(HttpResponse::Ok().json(json!({
+        "user_id": claims.sub,
+        "email": claims.email,
+        "expires_at": claims.exp,
+    })))
+}
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/auth")
             .route("/register", web::post().to(register))
             .route("/login", web::post().to(login))
             .route("/profile", web::get().to(get_profile))
-            .route("/wallet", web::put().to(update_wallet)),
+            .route("/wallet", web::put().to(update_wallet))
+            .route("/token", web::get().to(get_token_info)),
     );
 }

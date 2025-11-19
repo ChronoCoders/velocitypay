@@ -8,6 +8,7 @@ mod routes;
 
 use actix_web::{web, App, HttpResponse, HttpServer};
 use actix_cors::Cors;
+use actix_governor::{Governor, GovernorConfigBuilder};
 use config::Config;
 use std::sync::Arc;
 
@@ -18,7 +19,7 @@ async fn main() -> std::io::Result<()> {
     let config = Config::from_env().expect("Failed to load configuration");
     let server_address = config.server_address();
 
-    log::info!("Starting VelocityPay API Gateway");
+    log::info!("Starting VeloPay API Gateway");
     log::info!("Connecting to chain at: {}", config.chain_rpc_url);
     log::info!("Database: {}", config.database_url);
 
@@ -65,9 +66,16 @@ async fn main() -> std::io::Result<()> {
                 actix_web::http::header::AUTHORIZATION,
                 actix_web::http::header::CONTENT_TYPE,
                 actix_web::http::header::ACCEPT,
-                actix_web::http::HeaderName::from_static("x-admin-api-key"),
+                actix_web::http::header::HeaderName::from_static("x-admin-api-key"),
             ])
             .max_age(3600);
+
+        // Configure rate limiting
+        let governor_conf = GovernorConfigBuilder::default()
+            .per_second(config.rate_limit_window_seconds)
+            .burst_size(config.rate_limit_requests)
+            .finish()
+            .expect("Failed to create rate limiter configuration");
 
         // Create middleware instances
         let auth_middleware = middleware::Auth::new(config.jwt_secret.clone());
@@ -75,6 +83,7 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .wrap(cors)
+            .wrap(Governor::new(&governor_conf))
             .wrap(actix_web::middleware::Logger::default())
             // Inject shared data
             .app_data(web::Data::new(db_pool.clone()))
@@ -117,7 +126,7 @@ async fn main() -> std::io::Result<()> {
 async fn health_check() -> HttpResponse {
     HttpResponse::Ok().json(serde_json::json!({
         "status": "healthy",
-        "service": "velocitypay-api"
+        "service": "velopay-api"
     }))
 }
 
