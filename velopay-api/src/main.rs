@@ -8,6 +8,7 @@ mod routes;
 
 use actix_web::{web, App, HttpResponse, HttpServer};
 use actix_cors::Cors;
+use actix_governor::{Governor, GovernorConfigBuilder};
 use config::Config;
 use std::sync::Arc;
 
@@ -69,12 +70,20 @@ async fn main() -> std::io::Result<()> {
             ])
             .max_age(3600);
 
+        // Configure rate limiting
+        let governor_conf = GovernorConfigBuilder::default()
+            .per_second(config.rate_limit_window_seconds)
+            .burst_size(config.rate_limit_requests)
+            .finish()
+            .expect("Failed to create rate limiter configuration");
+
         // Create middleware instances
         let auth_middleware = middleware::Auth::new(config.jwt_secret.clone());
         let admin_middleware = middleware::AdminAuth::new(config.admin_api_key.clone());
 
         App::new()
             .wrap(cors)
+            .wrap(Governor::new(&governor_conf))
             .wrap(actix_web::middleware::Logger::default())
             // Inject shared data
             .app_data(web::Data::new(db_pool.clone()))

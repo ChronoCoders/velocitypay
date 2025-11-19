@@ -5,9 +5,9 @@ pub mod burn_request;
 pub mod kyc;
 pub mod response;
 
-pub use user::{User, CreateUserRequest, LoginRequest};
-pub use transaction::{Transaction, TransactionStatus};
-pub use mint_request::{MintRequest, MintRequestStatus, CreateMintRequest};
-pub use burn_request::{BurnRequest, BurnRequestStatus, CreateBurnRequest};
-pub use kyc::{KYCSubmission, KYCStatus, SubmitKYCRequest};
-pub use response::{TransactionResponse, MintRequestResponse, BurnRequestResponse, KYCSubmissionResponse};
+// Export commonly used types for external use
+pub use user::{UserResponse, CreateUserRequest, LoginRequest, AuthResponse};
+pub use transaction::{Transaction, TransactionStatus, TransactionResponse, SendPaymentRequest};
+pub use mint_request::{MintRequest, MintRequestStatus, MintRequestResponse, CreateMintRequest};
+pub use burn_request::{BurnRequest, BurnRequestStatus, BurnRequestResponse, CreateBurnRequest};
+pub use kyc::{KYCSubmission, KYCStatus, KYCResponse, SubmitKYCRequest};

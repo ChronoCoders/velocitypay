@@ -1,6 +1,6 @@
 use actix_web::{web, HttpRequest, HttpResponse, Result};
 use rust_decimal::Decimal;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
 use std::str::FromStr;
@@ -89,11 +89,50 @@ async fn get_transaction_history(
     }
 }
 
+/// Get transaction by blockchain hash (requires authentication)
+async fn get_transaction_by_hash(
+    pool: web::Data<PgPool>,
+    req: HttpRequest,
+    tx_hash: web::Path<String>,
+) -> Result<HttpResponse> {
+    let _user_id = get_user_id(&req)?; // Verify authentication
+
+    let repo = crate::db::transaction_repository::TransactionRepository::new(pool.get_ref());
+
+    match repo.find_by_tx_hash(&tx_hash).await {
+        Ok(Some(transaction)) => {
+            let response = crate::models::response::TransactionResponse {
+                id: transaction.id,
+                from_address: transaction.from_address,
+                to_address: transaction.to_address,
+                amount: transaction.amount,
+                fee: transaction.fee,
+                tx_hash: transaction.tx_hash,
+                block_number: transaction.block_number,
+                status: match transaction.status.as_str() {
+                    "confirmed" => crate::models::transaction::TransactionStatus::Confirmed,
+                    "failed" => crate::models::transaction::TransactionStatus::Failed,
+                    _ => crate::models::transaction::TransactionStatus::Pending,
+                },
+                created_at: transaction.created_at,
+            };
+            Ok(HttpResponse::Ok().json(response))
+        }
+        Ok(None) => Ok(HttpResponse::NotFound().json(json!({
+            "error": "Transaction not found"
+        }))),
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": e.to_string()
+        }))),
+    }
+}
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/payments")
             .route("", web::post().to(send_payment))
             .route("/{transaction_id}", web::get().to(get_transaction))
+            .route("/hash/{tx_hash}", web::get().to(get_transaction_by_hash))
             .route(
                 "/history/{wallet_address}",
                 web::get().to(get_transaction_history),

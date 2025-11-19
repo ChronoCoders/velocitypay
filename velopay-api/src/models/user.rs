@@ -36,6 +36,7 @@ pub struct UserResponse {
     pub email: String,
     pub wallet_address: Option<String>,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Serialize)]
@@ -51,6 +52,7 @@ impl From<User> for UserResponse {
             email: user.email,
             wallet_address: user.wallet_address,
             created_at: user.created_at,
+            updated_at: user.updated_at,
         }
     }
 }
