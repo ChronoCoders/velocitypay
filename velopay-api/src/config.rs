@@ -10,6 +10,7 @@ pub struct Config {
     pub jwt_secret: String,
     pub jwt_expiration: i64,
     pub admin_api_key: String,
+    pub admin_seed: String,
     pub rate_limit_requests: u32,
     pub rate_limit_window_seconds: u64,
     pub cors_allowed_origins: Vec<String>,
@@ -36,6 +37,10 @@ impl Config {
             return Err(anyhow::anyhow!("ADMIN_API_KEY must be at least 32 characters long"));
         }
 
+        // Load admin seed phrase for blockchain operations - MUST be set in production
+        let admin_seed = env::var("ADMIN_SEED")
+            .map_err(|_| anyhow::anyhow!("ADMIN_SEED must be set in environment variables (e.g., //Alice for dev)"))?;
+
         // Parse CORS allowed origins
         let cors_allowed_origins = env::var("CORS_ALLOWED_ORIGINS")
             .unwrap_or_else(|_| "http://localhost:3000,http://localhost:5173".to_string())
@@ -58,6 +63,7 @@ impl Config {
                 .unwrap_or_else(|_| "86400".to_string())
                 .parse()?,
             admin_api_key,
+            admin_seed,
             rate_limit_requests: env::var("RATE_LIMIT_REQUESTS")
                 .unwrap_or_else(|_| "100".to_string())
                 .parse()?,
