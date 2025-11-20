@@ -88,7 +88,7 @@ pub const MAXIMUM_BLOCK_LENGTH: u32 = 5 * 1024 * 1024;
 pub fn native_version() -> NativeVersion {
     NativeVersion {
         runtime_version: VERSION,
-        can_author_with: sp_std::collections::btree_set::BTreeSet::default(),
+        can_author_with: std::collections::HashSet::default(),
     }
 }
 
