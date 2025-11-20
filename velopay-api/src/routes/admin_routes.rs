@@ -4,6 +4,8 @@ use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+use crate::chain::client::VelocityClient;
+use crate::chain::operations::ChainOperations;
 use crate::models::transaction::TransactionStatus;
 use crate::services::{MintService, BurnService, KYCService, PaymentService};
 
@@ -74,22 +76,42 @@ async fn get_all_mint_requests(
 /// Approve mint request (admin only)
 async fn approve_mint_request(
     pool: web::Data<PgPool>,
+    chain_client: web::Data<VelocityClient>,
+    chain_ops: web::Data<ChainOperations>,
     mint_service: web::Data<MintService>,
     request_id: web::Path<Uuid>,
     approve_req: web::Json<ApproveRequest>,
 ) -> Result<HttpResponse> {
-    match mint_service
-        .approve_mint_request(
-            pool.get_ref(),
-            *request_id,
-            approve_req.admin_id,
-            approve_req.chain_request_id,
-        )
-        .await
-    {
-        Ok(mint_request) => Ok(HttpResponse::Ok().json(mint_request)),
-        Err(e) => Ok(HttpResponse::BadRequest().json(json!({
-            "error": e.to_string()
+    // Get the request ID to approve on blockchain (0 for now, will be parsed from events later)
+    let blockchain_request_id = approve_req.chain_request_id.unwrap_or(0) as u64;
+
+    // Submit approve transaction to blockchain
+    match chain_ops.approve_mint(chain_client.get_ref(), blockchain_request_id).await {
+        Ok(tx_hash) => {
+            log::info!("Mint approval submitted to blockchain - request_id: {}, tx_hash: {}", blockchain_request_id, tx_hash);
+
+            // Update database with approval
+            match mint_service
+                .approve_mint_request(
+                    pool.get_ref(),
+                    *request_id,
+                    approve_req.admin_id,
+                    Some(blockchain_request_id as i64),
+                )
+                .await
+            {
+                Ok(mint_request) => Ok(HttpResponse::Ok().json(json!({
+                    "mint_request": mint_request,
+                    "blockchain_tx_hash": tx_hash,
+                }))),
+                Err(e) => Ok(HttpResponse::BadRequest().json(json!({
+                    "error": format!("Database update failed: {}", e),
+                    "blockchain_tx_hash": tx_hash,
+                }))),
+            }
+        },
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Blockchain transaction failed: {}", e)
         }))),
     }
 }
@@ -97,17 +119,37 @@ async fn approve_mint_request(
 /// Reject mint request (admin only)
 async fn reject_mint_request(
     pool: web::Data<PgPool>,
+    chain_client: web::Data<VelocityClient>,
+    chain_ops: web::Data<ChainOperations>,
     mint_service: web::Data<MintService>,
     request_id: web::Path<Uuid>,
     reject_req: web::Json<RejectRequest>,
 ) -> Result<HttpResponse> {
-    match mint_service
-        .reject_mint_request(pool.get_ref(), *request_id, reject_req.admin_id)
-        .await
-    {
-        Ok(mint_request) => Ok(HttpResponse::Ok().json(mint_request)),
-        Err(e) => Ok(HttpResponse::BadRequest().json(json!({
-            "error": e.to_string()
+    // For reject, we use placeholder request_id 0 since the request may not be on-chain yet
+    let blockchain_request_id = 0u64;
+
+    // Submit reject transaction to blockchain
+    match chain_ops.reject_mint(chain_client.get_ref(), blockchain_request_id).await {
+        Ok(tx_hash) => {
+            log::info!("Mint rejection submitted to blockchain - tx_hash: {}", tx_hash);
+
+            // Update database with rejection
+            match mint_service
+                .reject_mint_request(pool.get_ref(), *request_id, reject_req.admin_id)
+                .await
+            {
+                Ok(mint_request) => Ok(HttpResponse::Ok().json(json!({
+                    "mint_request": mint_request,
+                    "blockchain_tx_hash": tx_hash,
+                }))),
+                Err(e) => Ok(HttpResponse::BadRequest().json(json!({
+                    "error": format!("Database update failed: {}", e),
+                    "blockchain_tx_hash": tx_hash,
+                }))),
+            }
+        },
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Blockchain transaction failed: {}", e)
         }))),
     }
 }
@@ -168,22 +210,42 @@ async fn get_all_burn_requests(
 /// Approve burn request (admin only)
 async fn approve_burn_request(
     pool: web::Data<PgPool>,
+    chain_client: web::Data<VelocityClient>,
+    chain_ops: web::Data<ChainOperations>,
     burn_service: web::Data<BurnService>,
     request_id: web::Path<Uuid>,
     approve_req: web::Json<ApproveRequest>,
 ) -> Result<HttpResponse> {
-    match burn_service
-        .approve_burn_request(
-            pool.get_ref(),
-            *request_id,
-            approve_req.admin_id,
-            approve_req.chain_request_id,
-        )
-        .await
-    {
-        Ok(burn_request) => Ok(HttpResponse::Ok().json(burn_request)),
-        Err(e) => Ok(HttpResponse::BadRequest().json(json!({
-            "error": e.to_string()
+    // Get the request ID to approve on blockchain
+    let blockchain_request_id = approve_req.chain_request_id.unwrap_or(0) as u64;
+
+    // Submit approve transaction to blockchain
+    match chain_ops.approve_burn(chain_client.get_ref(), blockchain_request_id).await {
+        Ok(tx_hash) => {
+            log::info!("Burn approval submitted to blockchain - request_id: {}, tx_hash: {}", blockchain_request_id, tx_hash);
+
+            // Update database with approval
+            match burn_service
+                .approve_burn_request(
+                    pool.get_ref(),
+                    *request_id,
+                    approve_req.admin_id,
+                    Some(blockchain_request_id as i64),
+                )
+                .await
+            {
+                Ok(burn_request) => Ok(HttpResponse::Ok().json(json!({
+                    "burn_request": burn_request,
+                    "blockchain_tx_hash": tx_hash,
+                }))),
+                Err(e) => Ok(HttpResponse::BadRequest().json(json!({
+                    "error": format!("Database update failed: {}", e),
+                    "blockchain_tx_hash": tx_hash,
+                }))),
+            }
+        },
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Blockchain transaction failed: {}", e)
         }))),
     }
 }
@@ -191,17 +253,37 @@ async fn approve_burn_request(
 /// Reject burn request (admin only)
 async fn reject_burn_request(
     pool: web::Data<PgPool>,
+    chain_client: web::Data<VelocityClient>,
+    chain_ops: web::Data<ChainOperations>,
     burn_service: web::Data<BurnService>,
     request_id: web::Path<Uuid>,
     reject_req: web::Json<RejectRequest>,
 ) -> Result<HttpResponse> {
-    match burn_service
-        .reject_burn_request(pool.get_ref(), *request_id, reject_req.admin_id)
-        .await
-    {
-        Ok(burn_request) => Ok(HttpResponse::Ok().json(burn_request)),
-        Err(e) => Ok(HttpResponse::BadRequest().json(json!({
-            "error": e.to_string()
+    // For reject, we use placeholder request_id 0 since the request may not be on-chain yet
+    let blockchain_request_id = 0u64;
+
+    // Submit reject transaction to blockchain
+    match chain_ops.reject_burn(chain_client.get_ref(), blockchain_request_id).await {
+        Ok(tx_hash) => {
+            log::info!("Burn rejection submitted to blockchain - tx_hash: {}", tx_hash);
+
+            // Update database with rejection
+            match burn_service
+                .reject_burn_request(pool.get_ref(), *request_id, reject_req.admin_id)
+                .await
+            {
+                Ok(burn_request) => Ok(HttpResponse::Ok().json(json!({
+                    "burn_request": burn_request,
+                    "blockchain_tx_hash": tx_hash,
+                }))),
+                Err(e) => Ok(HttpResponse::BadRequest().json(json!({
+                    "error": format!("Database update failed: {}", e),
+                    "blockchain_tx_hash": tx_hash,
+                }))),
+            }
+        },
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Blockchain transaction failed: {}", e)
         }))),
     }
 }
@@ -374,6 +456,106 @@ async fn update_transaction(
     }
 }
 
+// ===== BLOCKCHAIN UTILITY ENDPOINTS =====
+
+#[derive(Debug, Deserialize)]
+struct DirectMintRequest {
+    amount: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct DirectBurnRequest {
+    amount: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct DirectTransferRequest {
+    to_address: String,
+    amount: String,
+}
+
+/// Direct blockchain mint request (admin utility - for testing)
+async fn blockchain_request_mint(
+    chain_client: web::Data<VelocityClient>,
+    chain_ops: web::Data<ChainOperations>,
+    mint_req: web::Json<DirectMintRequest>,
+) -> Result<HttpResponse> {
+    use rust_decimal::Decimal;
+    use std::str::FromStr;
+
+    let amount = Decimal::from_str(&mint_req.amount)
+        .map_err(|_| actix_web::error::ErrorBadRequest("Invalid amount format"))?;
+
+    match chain_ops.request_mint(chain_client.get_ref(), amount).await {
+        Ok((tx_hash, request_id)) => {
+            log::info!("Direct mint request submitted - tx_hash: {}, request_id: {}", tx_hash, request_id);
+            Ok(HttpResponse::Ok().json(json!({
+                "tx_hash": tx_hash,
+                "blockchain_request_id": request_id,
+                "amount": amount.to_string(),
+            })))
+        },
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Blockchain transaction failed: {}", e)
+        }))),
+    }
+}
+
+/// Direct blockchain burn request (admin utility - for testing)
+async fn blockchain_request_burn(
+    chain_client: web::Data<VelocityClient>,
+    chain_ops: web::Data<ChainOperations>,
+    burn_req: web::Json<DirectBurnRequest>,
+) -> Result<HttpResponse> {
+    use rust_decimal::Decimal;
+    use std::str::FromStr;
+
+    let amount = Decimal::from_str(&burn_req.amount)
+        .map_err(|_| actix_web::error::ErrorBadRequest("Invalid amount format"))?;
+
+    match chain_ops.request_burn(chain_client.get_ref(), amount).await {
+        Ok((tx_hash, request_id)) => {
+            log::info!("Direct burn request submitted - tx_hash: {}, request_id: {}", tx_hash, request_id);
+            Ok(HttpResponse::Ok().json(json!({
+                "tx_hash": tx_hash,
+                "blockchain_request_id": request_id,
+                "amount": amount.to_string(),
+            })))
+        },
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Blockchain transaction failed: {}", e)
+        }))),
+    }
+}
+
+/// Direct blockchain transfer (admin utility - for testing)
+async fn blockchain_transfer(
+    chain_client: web::Data<VelocityClient>,
+    chain_ops: web::Data<ChainOperations>,
+    transfer_req: web::Json<DirectTransferRequest>,
+) -> Result<HttpResponse> {
+    use rust_decimal::Decimal;
+    use std::str::FromStr;
+
+    let amount = Decimal::from_str(&transfer_req.amount)
+        .map_err(|_| actix_web::error::ErrorBadRequest("Invalid amount format"))?;
+
+    match chain_ops.transfer(chain_client.get_ref(), &transfer_req.to_address, amount).await {
+        Ok(tx_hash) => {
+            log::info!("Direct transfer submitted - tx_hash: {}, to: {}, amount: {}",
+                tx_hash, transfer_req.to_address, amount);
+            Ok(HttpResponse::Ok().json(json!({
+                "tx_hash": tx_hash,
+                "to_address": transfer_req.to_address,
+                "amount": amount.to_string(),
+            })))
+        },
+        Err(e) => Ok(HttpResponse::InternalServerError().json(json!({
+            "error": format!("Blockchain transaction failed: {}", e)
+        }))),
+    }
+}
+
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/admin")
@@ -397,6 +579,10 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
             .route("/kyc/{submission_id}/reject", web::post().to(reject_kyc_submission))
             .route("/kyc/wallet/{wallet_address}", web::get().to(get_kyc_by_wallet))
             // Transactions
-            .route("/transactions/{transaction_id}/update", web::post().to(update_transaction)),
+            .route("/transactions/{transaction_id}/update", web::post().to(update_transaction))
+            // Blockchain utility endpoints
+            .route("/blockchain/mint", web::post().to(blockchain_request_mint))
+            .route("/blockchain/burn", web::post().to(blockchain_request_burn))
+            .route("/blockchain/transfer", web::post().to(blockchain_transfer)),
     );
 }

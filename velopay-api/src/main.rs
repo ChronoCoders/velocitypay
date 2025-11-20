@@ -38,6 +38,12 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("Failed to connect to blockchain");
 
+    // Initialize blockchain operations signer
+    let chain_ops = chain::operations::ChainOperations::new(&config.admin_seed)
+        .expect("Failed to create blockchain operations signer");
+
+    log::info!("Blockchain operations initialized with admin account");
+
     // Initialize services
     let auth_service = Arc::new(services::AuthService::new(
         config.jwt_secret.clone(),
@@ -49,6 +55,7 @@ async fn main() -> std::io::Result<()> {
     let kyc_service = Arc::new(services::KYCService::new());
 
     let chain_client = Arc::new(chain_client);
+    let chain_ops = Arc::new(chain_ops);
     let config = Arc::new(config);
     let db_pool = Arc::new(db_pool);
 
@@ -88,6 +95,7 @@ async fn main() -> std::io::Result<()> {
             // Inject shared data
             .app_data(web::Data::new(db_pool.clone()))
             .app_data(web::Data::new(chain_client.clone()))
+            .app_data(web::Data::new(chain_ops.clone()))
             .app_data(web::Data::new(config.clone()))
             .app_data(web::Data::new(auth_service.clone()))
             .app_data(web::Data::new(payment_service.clone()))
