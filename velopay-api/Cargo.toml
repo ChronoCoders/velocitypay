@@ -22,7 +22,7 @@ validator = { version = "0.16", features = ["derive"] }
 anyhow = "1.0"
 thiserror = "1.0"
 
-subxt = "0.32"
+subxt = { version = "0.32", features = ["substrate-compat"] }
 sp-core = "21.0"
 sp-runtime = "24.0"
 sp-keyring = "24.0"

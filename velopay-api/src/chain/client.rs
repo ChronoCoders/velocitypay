@@ -12,4 +12,6 @@ pub async fn connect_to_chain(rpc_url: &str) -> Result<VelocityClient> {
 #[subxt::subxt(runtime_metadata_path = "metadata.scale")]
 pub mod velo_runtime {}
 
+// Re-export runtime types for advanced usage
+#[allow(unused_imports)]
 pub use velo_runtime::runtime_types;
