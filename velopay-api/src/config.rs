@@ -1,6 +1,19 @@
 use serde::Deserialize;
 use std::env;
 
+// Environment variable name constants
+static JWT_SECRET: &str = "JWT_SECRET";
+static ADMIN_API_KEY: &str = "ADMIN_API_KEY";
+static ADMIN_SEED: &str = "ADMIN_SEED";
+static CORS_ALLOWED_ORIGINS: &str = "CORS_ALLOWED_ORIGINS";
+static DATABASE_URL: &str = "DATABASE_URL";
+static CHAIN_RPC_URL: &str = "CHAIN_RPC_URL";
+static SERVER_HOST: &str = "SERVER_HOST";
+static SERVER_PORT: &str = "SERVER_PORT";
+static JWT_EXPIRATION: &str = "JWT_EXPIRATION";
+static RATE_LIMIT_REQUESTS: &str = "RATE_LIMIT_REQUESTS";
+static RATE_LIMIT_WINDOW_SECONDS: &str = "RATE_LIMIT_WINDOW_SECONDS";
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct Config {
     pub database_url: String,
@@ -21,28 +34,28 @@ impl Config {
         dotenv::dotenv().ok();
 
         // Load JWT secret - MUST be set in production
-        let jwt_secret = env::var("JWT_SECRET")
-            .map_err(|_| anyhow::anyhow!("JWT_SECRET must be set in environment variables"))?;
+        let jwt_secret = env::var(JWT_SECRET)
+            .map_err(|_| anyhow::anyhow!("{} must be set in environment variables", JWT_SECRET))?;
 
         // Validate JWT secret strength
         if jwt_secret.len() < 32 {
-            return Err(anyhow::anyhow!("JWT_SECRET must be at least 32 characters long"));
+            return Err(anyhow::anyhow!("{} must be at least 32 characters long", JWT_SECRET));
         }
 
         // Load admin API key - MUST be set in production
-        let admin_api_key = env::var("ADMIN_API_KEY")
-            .map_err(|_| anyhow::anyhow!("ADMIN_API_KEY must be set in environment variables"))?;
+        let admin_api_key = env::var(ADMIN_API_KEY)
+            .map_err(|_| anyhow::anyhow!("{} must be set in environment variables", ADMIN_API_KEY))?;
 
         if admin_api_key.len() < 32 {
-            return Err(anyhow::anyhow!("ADMIN_API_KEY must be at least 32 characters long"));
+            return Err(anyhow::anyhow!("{} must be at least 32 characters long", ADMIN_API_KEY));
         }
 
         // Load admin seed phrase for blockchain operations - MUST be set in production
-        let admin_seed = env::var("ADMIN_SEED")
-            .map_err(|_| anyhow::anyhow!("ADMIN_SEED must be set in environment variables (e.g., //Alice for dev)"))?;
+        let admin_seed = env::var(ADMIN_SEED)
+            .map_err(|_| anyhow::anyhow!("{} must be set in environment variables (e.g., //Alice for dev)", ADMIN_SEED))?;
 
         // Parse CORS allowed origins
-        let cors_allowed_origins = env::var("CORS_ALLOWED_ORIGINS")
+        let cors_allowed_origins = env::var(CORS_ALLOWED_ORIGINS)
             .unwrap_or_else(|_| "http://localhost:3000,http://localhost:5173".to_string())
             .split(',')
             .map(|s| s.trim().to_string())
@@ -50,24 +63,24 @@ impl Config {
             .collect();
 
         Ok(Config {
-            database_url: env::var("DATABASE_URL")
+            database_url: env::var(DATABASE_URL)
                 .unwrap_or_else(|_| "postgresql://localhost/velopay".to_string()),
-            chain_rpc_url: env::var("CHAIN_RPC_URL")
+            chain_rpc_url: env::var(CHAIN_RPC_URL)
                 .unwrap_or_else(|_| "ws://127.0.0.1:9944".to_string()),
-            server_host: env::var("SERVER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
-            server_port: env::var("SERVER_PORT")
+            server_host: env::var(SERVER_HOST).unwrap_or_else(|_| "127.0.0.1".to_string()),
+            server_port: env::var(SERVER_PORT)
                 .unwrap_or_else(|_| "8080".to_string())
                 .parse()?,
             jwt_secret,
-            jwt_expiration: env::var("JWT_EXPIRATION")
+            jwt_expiration: env::var(JWT_EXPIRATION)
                 .unwrap_or_else(|_| "86400".to_string())
                 .parse()?,
             admin_api_key,
             admin_seed,
-            rate_limit_requests: env::var("RATE_LIMIT_REQUESTS")
+            rate_limit_requests: env::var(RATE_LIMIT_REQUESTS)
                 .unwrap_or_else(|_| "100".to_string())
                 .parse()?,
-            rate_limit_window_seconds: env::var("RATE_LIMIT_WINDOW_SECONDS")
+            rate_limit_window_seconds: env::var(RATE_LIMIT_WINDOW_SECONDS)
                 .unwrap_or_else(|_| "60".to_string())
                 .parse()?,
             cors_allowed_origins,
