@@ -124,7 +124,7 @@ check-network-status.bat  - Monitor validator connectivity
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                         VeloPay Ecosystem                          │
+│                         VeloPay Ecosystem                           │
 └─────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
@@ -153,8 +153,8 @@ check-network-status.bat  - Monitor validator connectivity
                           │                              │
                           │  ┌─────────────────────────┐ │
                           │  │  VeloPay Pallet         │ │
-                          │  │  • Mint/Burn           │ │
-                          │  │  • Transfer            │ │
+                          │  │  • Mint/Burn            │ │
+                          │  │  • Transfer             │ │
                           │  └─────────────────────────┘ │
                           │                              │
                           │  ┌─────────────────────────┐ │
