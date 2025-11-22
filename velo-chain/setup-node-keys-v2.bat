@@ -17,31 +17,22 @@ if not exist "node-keys" (
 )
 echo.
 
-REM Generate Alice's node key using VBScript (pure Windows, no PowerShell needed)
+REM Generate Alice's node key (using %RANDOM% - sufficient for dev/test)
 echo [2/3] Generating Alice's node key...
 
-REM Create temporary VBScript for cryptographic random generation
-echo Set objFSO = CreateObject("Scripting.FileSystemObject") > %TEMP%\genkey.vbs
-echo Set objRNG = CreateObject("System.Security.Cryptography.RNGCryptoServiceProvider") >> %TEMP%\genkey.vbs
-echo arrBytes = Array() >> %TEMP%\genkey.vbs
-echo ReDim arrBytes(31) >> %TEMP%\genkey.vbs
-echo objRNG.GetBytes(arrBytes) >> %TEMP%\genkey.vbs
-echo strHex = "" >> %TEMP%\genkey.vbs
-echo For i = 0 To 31 >> %TEMP%\genkey.vbs
-echo   strHex = strHex ^& Right("0" ^& Hex(arrBytes(i)), 2) >> %TEMP%\genkey.vbs
-echo Next >> %TEMP%\genkey.vbs
-echo Set objFile = objFSO.CreateTextFile(WScript.Arguments(0), True) >> %TEMP%\genkey.vbs
-echo objFile.Write LCase(strHex) >> %TEMP%\genkey.vbs
-echo objFile.Close >> %TEMP%\genkey.vbs
-
-cscript //nologo %TEMP%\genkey.vbs "%CD%\node-keys\alice-node-key"
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Failed to generate Alice's node key!
-    del %TEMP%\genkey.vbs 2>nul
-    pause
-    exit /b 1
+setlocal enabledelayedexpansion
+set "hex="
+for /L %%i in (1,1,16) do (
+    set /a "r1=%RANDOM% %% 256"
+    set /a "r2=%RANDOM% %% 256"
+    call :tohex !r1! h1
+    call :tohex !r2! h2
+    set "hex=!hex!!h1!!h2!"
 )
+
+REM Write to file without newline
+<nul set /p "=!hex!" > node-keys\alice-node-key
+endlocal
 
 echo [OK] Alice's node key generated: node-keys\alice-node-key
 echo.
@@ -49,17 +40,32 @@ echo.
 REM Generate Bob's node key
 echo [3/3] Generating Bob's node key...
 
-cscript //nologo %TEMP%\genkey.vbs "%CD%\node-keys\bob-node-key"
-
-if %ERRORLEVEL% NEQ 0 (
-    echo [ERROR] Failed to generate Bob's node key!
-    del %TEMP%\genkey.vbs 2>nul
-    pause
-    exit /b 1
+setlocal enabledelayedexpansion
+set "hex="
+for /L %%i in (1,1,16) do (
+    set /a "r1=%RANDOM% %% 256"
+    set /a "r2=%RANDOM% %% 256"
+    call :tohex !r1! h1
+    call :tohex !r2! h2
+    set "hex=!hex!!h1!!h2!"
 )
 
-REM Clean up temp script
-del %TEMP%\genkey.vbs 2>nul
+<nul set /p "=!hex!" > node-keys\bob-node-key
+endlocal
+
+goto after_tohex
+
+:tohex
+set "n=%~1"
+set "h=0123456789abcdef"
+set /a "d1=%n% / 16"
+set /a "d2=%n% %% 16"
+for /f %%a in ("!d1!") do set "c1=!h:~%%a,1!"
+for /f %%a in ("!d2!") do set "c2=!h:~%%a,1!"
+set "%~2=!c1!!c2!"
+exit /b
+
+:after_tohex
 
 echo [OK] Bob's node key generated: node-keys\bob-node-key
 echo.
