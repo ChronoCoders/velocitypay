@@ -198,27 +198,57 @@ cargo build --release
 ```
 
 **On Windows**:
-```powershell
+```cmd
 cd velo-chain
 
 rustup target add wasm32-unknown-unknown
 rustup component add rust-src
 
-# Set environment variable for vendored OpenSSL
-$env:OPENSSL_VENDORED = "1"
+REM Set environment variable for vendored OpenSSL
+set OPENSSL_VENDORED=1
 
 cargo build --release
-
-# Run with helper script
-.\quick-start.bat
-
-# Or run manually
-.\target\release\velo-node.exe --chain local --alice --tmp --rpc-external --rpc-cors all
 ```
 
 **Build time**: 15-45 minutes on first build
 
 **See `velo-chain/BUILD.md` for detailed build instructions and troubleshooting.**
+
+### Windows Multi-Validator Setup
+
+VeloPay includes production-ready Windows batch scripts for managing validators with persistent node identities.
+
+**Quick Start (3 steps):**
+
+```cmd
+cd velo-chain
+
+REM 1. Generate persistent node keys (one-time setup)
+setup-node-keys-v2.bat
+
+REM 2. Start Alice validator (in Terminal 1)
+run-alice-final.bat
+
+REM 3. Start Bob validator (in Terminal 2)
+run-bob-final.bat
+```
+
+**Available Scripts:**
+- `setup-node-keys-v2.bat` - Generate persistent Ed25519 node keys
+- `run-alice-final.bat` - Start Alice validator with stable peer ID
+- `run-bob-final.bat` - Start Bob validator and connect to Alice
+- `inspect-node-keys.bat` - View node key information
+- `reset-testnet.bat` - Clean blockchain data (preserves keys)
+- `check-network-status.bat` - Monitor validator connectivity
+
+**Key Features:**
+- Pure CMD - No PowerShell required
+- Persistent node keys for stable peer IDs across restarts
+- Automatic peer ID management and saving
+- Plain ASCII output (no emojis/ANSI codes)
+- Production-ready validator setup
+
+**See `velo-chain/NODE-MANAGEMENT-README.md` for comprehensive Windows setup guide.**
 
 ### Build API Gateway
 
@@ -240,11 +270,20 @@ cd velo-chain
 cargo run --release -- --dev --tmp
 ```
 
-**Windows**:
-```powershell
+**Windows (Single Node)**:
+```cmd
 cd velo-chain
-$env:OPENSSL_VENDORED = "1"
+set OPENSSL_VENDORED=1
 cargo run --release -- --dev --tmp
+```
+
+**Windows (Multi-Validator Network)**:
+Use the provided batch scripts for a production-like setup with persistent node identities:
+```cmd
+cd velo-chain
+setup-node-keys-v2.bat    REM One-time setup
+run-alice-final.bat       REM Terminal 1
+run-bob-final.bat         REM Terminal 2
 ```
 
 ### Create Production Chain Spec
@@ -456,25 +495,28 @@ Apache-2.0
 ## Development Status
 
 **Completed**:
-- ✅ Complete Substrate blockchain implementation
-- ✅ Custom pallets (VeloPay, KYC, Compliance)
-- ✅ Runtime configuration
-- ✅ Node service and chain specification
-- ✅ API Gateway project structure
-- ✅ Data models and configuration
+- Complete Substrate blockchain implementation
+- Custom pallets (VeloPay, KYC, Compliance)
+- Runtime configuration
+- Node service and chain specification
+- API Gateway project structure
+- Data models and configuration
+- Windows validator management scripts
+- Persistent node key generation
+- Multi-validator testnet setup
 
 **In Progress**:
-- 🔄 API services and routes implementation
-- 🔄 Middleware (authentication, rate limiting)
-- 🔄 Database integration
+- API services and routes implementation
+- Middleware (authentication, rate limiting)
+- Database integration
 
 **Pending**:
-- ⏳ Frontend SvelteKit application
-- ⏳ Block explorer functionality
-- ⏳ Admin dashboard
-- ⏳ Comprehensive testing suite
-- ⏳ Production deployment configuration
-- ⏳ Documentation and API specs
+- Frontend SvelteKit application
+- Block explorer functionality
+- Admin dashboard
+- Comprehensive testing suite
+- Production deployment configuration
+- API documentation (OpenAPI/Swagger)
 
 ## Additional Files Needed for Complete Implementation
 
