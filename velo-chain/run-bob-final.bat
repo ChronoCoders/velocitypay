@@ -22,7 +22,7 @@ echo [OK] Bob's node key found
 echo.
 
 REM Try to read Alice's peer ID from file
-set "ALICE_PEER_ID="
+set ALICE_PEER_ID=
 if exist "alice-peer-id.txt" (
     set /p ALICE_PEER_ID=<alice-peer-id.txt
 )
@@ -30,17 +30,17 @@ if exist "alice-peer-id.txt" (
 REM If file doesn't exist or is empty, prompt user
 if "!ALICE_PEER_ID!"=="" (
     echo ========================================
-    echo Alice's Peer ID Required
+    echo Alice Peer ID Required
     echo ========================================
     echo.
-    echo Bob needs to connect to Alice's bootnode.
+    echo Bob needs to connect to Alice bootnode.
     echo.
-    echo Look at Alice's terminal window for a line like:
+    echo Look at Alice terminal window for a line like:
     echo   Local node identity is: 12D3Koo...
     echo.
-    echo Copy the peer ID (starts with 12D3Koo) and paste it here.
+    echo Copy the peer ID and paste it here.
     echo.
-    set /p ALICE_PEER_ID="Enter Alice's Peer ID: "
+    set /p ALICE_PEER_ID=Enter Alice Peer ID:
 
     REM Save it for next time
     echo !ALICE_PEER_ID!>alice-peer-id.txt
@@ -52,10 +52,10 @@ if "!ALICE_PEER_ID!"=="" (
     echo.
 )
 
-REM Validate peer ID format (basic check)
+REM Validate peer ID format
 echo !ALICE_PEER_ID! | findstr /R /C:"^12D3Koo" >nul
 if %ERRORLEVEL% NEQ 0 (
-    echo [WARNING] Peer ID doesn't look valid (should start with 12D3Koo)
+    echo [WARNING] Peer ID does not look valid
     echo Continuing anyway, but connection may fail...
     echo.
 )
@@ -78,7 +78,7 @@ echo ========================================
 echo.
 echo Alice MUST be running before starting Bob!
 echo.
-echo If Bob can't connect:
+echo If Bob cannot connect:
 echo 1. Check Alice is running
 echo 2. Verify the peer ID is correct
 echo 3. Delete alice-peer-id.txt and re-enter
