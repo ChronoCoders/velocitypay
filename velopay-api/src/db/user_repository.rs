@@ -1,9 +1,9 @@
 use sqlx::PgPool;
 use uuid::Uuid;
-use anyhow::Result;
 use chrono::{DateTime, Utc};
+use anyhow::Result;
 
-#[derive(Debug, sqlx::FromRow)]
+#[derive(Debug, Clone)]
 pub struct UserRecord {
     pub id: Uuid,
     pub email: String,
@@ -29,16 +29,17 @@ impl<'a> UserRepository<'a> {
         password_hash: &str,
         wallet_address: Option<&str>,
     ) -> Result<UserRecord> {
-        let user = sqlx::query_as::<_, UserRecord>(
+        let user = sqlx::query_as!(
+            UserRecord,
             r#"
             INSERT INTO users (email, password_hash, wallet_address)
             VALUES ($1, $2, $3)
             RETURNING id, email, password_hash, wallet_address, created_at, updated_at
             "#,
+            email,
+            password_hash,
+            wallet_address
         )
-        .bind(email)
-        .bind(password_hash)
-        .bind(wallet_address)
         .fetch_one(self.pool)
         .await?;
 
@@ -47,14 +48,15 @@ impl<'a> UserRepository<'a> {
 
     /// Find user by email
     pub async fn find_by_email(&self, email: &str) -> Result<Option<UserRecord>> {
-        let user = sqlx::query_as::<_, UserRecord>(
+        let user = sqlx::query_as!(
+            UserRecord,
             r#"
             SELECT id, email, password_hash, wallet_address, created_at, updated_at
             FROM users
             WHERE email = $1
             "#,
+            email
         )
-        .bind(email)
         .fetch_optional(self.pool)
         .await?;
 
@@ -63,14 +65,15 @@ impl<'a> UserRepository<'a> {
 
     /// Find user by ID
     pub async fn find_by_id(&self, id: Uuid) -> Result<Option<UserRecord>> {
-        let user = sqlx::query_as::<_, UserRecord>(
+        let user = sqlx::query_as!(
+            UserRecord,
             r#"
             SELECT id, email, password_hash, wallet_address, created_at, updated_at
             FROM users
             WHERE id = $1
             "#,
+            id
         )
-        .bind(id)
         .fetch_optional(self.pool)
         .await?;
 
@@ -79,14 +82,15 @@ impl<'a> UserRepository<'a> {
 
     /// Find user by wallet address
     pub async fn find_by_wallet(&self, wallet_address: &str) -> Result<Option<UserRecord>> {
-        let user = sqlx::query_as::<_, UserRecord>(
+        let user = sqlx::query_as!(
+            UserRecord,
             r#"
             SELECT id, email, password_hash, wallet_address, created_at, updated_at
             FROM users
             WHERE wallet_address = $1
             "#,
+            wallet_address
         )
-        .bind(wallet_address)
         .fetch_optional(self.pool)
         .await?;
 
@@ -96,19 +100,20 @@ impl<'a> UserRepository<'a> {
     /// Update user's wallet address
     pub async fn update_wallet_address(
         &self,
-        user_id: Uuid,
+        id: Uuid,
         wallet_address: &str,
     ) -> Result<UserRecord> {
-        let user = sqlx::query_as::<_, UserRecord>(
+        let user = sqlx::query_as!(
+            UserRecord,
             r#"
             UPDATE users
             SET wallet_address = $1, updated_at = NOW()
             WHERE id = $2
             RETURNING id, email, password_hash, wallet_address, created_at, updated_at
             "#,
+            wallet_address,
+            id
         )
-        .bind(wallet_address)
-        .bind(user_id)
         .fetch_one(self.pool)
         .await?;
 

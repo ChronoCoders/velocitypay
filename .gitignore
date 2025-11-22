@@ -20,9 +20,10 @@ api-keys.json
 **/data/
 velocity-chain/data/
 velocity-chain/chain-data/
-db/
-!velopay-api/src/db/
-*.db
+# Database files (not source code)
+/*.db
+**/*.db
+!**/src/db/
 *.sqlite
 *.sqlite3
 
