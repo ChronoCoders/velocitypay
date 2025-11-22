@@ -36,7 +36,7 @@ if "!ALICE_PEER_ID!"=="" (
     echo Bob needs to connect to Alice's bootnode.
     echo.
     echo Look at Alice's terminal window for a line like:
-    echo   [32mLocal node identity is: 12D3Koo...[0m
+    echo   Local node identity is: 12D3Koo...
     echo.
     echo Copy the peer ID (starts with 12D3Koo) and paste it here.
     echo.
