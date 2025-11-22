@@ -46,7 +46,8 @@ echo Starting Alice Validator...
 echo ========================================
 echo.
 
-REM Start the node
+REM Start the node (disable color/emoji output for CMD compatibility)
+set RUST_LOG_STYLE=never
 target\release\velo-node.exe ^
   --base-path .\chain-data\alice ^
   --chain local ^
@@ -57,7 +58,8 @@ target\release\velo-node.exe ^
   --rpc-external ^
   --rpc-cors all ^
   --validator ^
-  --rpc-methods Unsafe
+  --rpc-methods Unsafe ^
+  --log-color never
 
 echo.
 echo ========================================

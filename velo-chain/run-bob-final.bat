@@ -88,7 +88,8 @@ echo Starting Bob Validator...
 echo ========================================
 echo.
 
-REM Start the node
+REM Start the node (disable color/emoji output for CMD compatibility)
+set RUST_LOG_STYLE=never
 target\release\velo-node.exe ^
   --base-path .\chain-data\bob ^
   --chain local ^
@@ -100,6 +101,7 @@ target\release\velo-node.exe ^
   --rpc-cors all ^
   --validator ^
   --rpc-methods Unsafe ^
+  --log-color never ^
   --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/!ALICE_PEER_ID!
 
 echo.
