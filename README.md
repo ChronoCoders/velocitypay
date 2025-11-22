@@ -1,6 +1,6 @@
 # Velo Pay
 
-Professional blockchain-based payment system with fiat-backed stablecoin (VCS).
+Enterprise-grade blockchain payment infrastructure with fiat-backed stablecoin (VPC) for secure, compliant digital transactions
 
 ## System Architecture
 
