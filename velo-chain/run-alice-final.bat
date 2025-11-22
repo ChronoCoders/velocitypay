@@ -32,7 +32,7 @@ echo ========================================
 echo.
 echo When the node starts, look for this line in the output:
 echo.
-echo   [32m****Local node identity is: 12D3Koo...[0m
+echo   Local node identity is: 12D3Koo...
 echo.
 echo This is Alice's PEER ID - you'll need it to connect Bob!
 echo.
