@@ -48,6 +48,7 @@ echo.
 
 REM Start the node (disable color/emoji output for CMD compatibility)
 set RUST_LOG_STYLE=never
+set NO_COLOR=1
 target\release\velo-node.exe ^
   --base-path .\chain-data\alice ^
   --chain local ^
@@ -58,8 +59,7 @@ target\release\velo-node.exe ^
   --rpc-external ^
   --rpc-cors all ^
   --validator ^
-  --rpc-methods Unsafe ^
-  --log-color never
+  --rpc-methods Unsafe
 
 echo.
 echo ========================================
