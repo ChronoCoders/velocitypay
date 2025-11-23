@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![allow(deprecated)]
 
 pub use pallet::*;
 
@@ -308,7 +307,7 @@ pub mod pallet {
             let current_block = <frame_system::Pallet<T>>::block_number();
             let blocks_per_day = T::BlocksPerDay::get();
 
-            // Prevent division by zero
+            // Prevent division by zero - MUST check before division
             if blocks_per_day.is_zero() {
                 return Err("BlocksPerDay configuration cannot be zero");
             }

@@ -5,6 +5,7 @@ mod db;
 mod middleware;
 mod services;
 mod routes;
+mod utils;
 
 use actix_web::{web, App, HttpResponse, HttpServer};
 use actix_cors::Cors;
@@ -77,12 +78,19 @@ async fn main() -> std::io::Result<()> {
             ])
             .max_age(3600);
 
-        // Configure rate limiting
+        // Configure rate limiting - general endpoints
         let governor_conf = GovernorConfigBuilder::default()
             .per_second(config.rate_limit_window_seconds)
             .burst_size(config.rate_limit_requests)
             .finish()
             .expect("Failed to create rate limiter configuration");
+
+        // Configure stricter rate limiting for auth endpoints (5 requests per minute)
+        let auth_governor_conf = GovernorConfigBuilder::default()
+            .per_second(60) // 1 minute window
+            .burst_size(5)  // 5 requests per minute
+            .finish()
+            .expect("Failed to create auth rate limiter configuration");
 
         // Create middleware instances
         let auth_middleware = middleware::Auth::new(config.jwt_secret.clone());
@@ -90,7 +98,6 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .wrap(cors)
-            .wrap(Governor::new(&governor_conf))
             .wrap(actix_web::middleware::Logger::default())
             // Inject shared data
             .app_data(web::Data::new(db_pool.clone()))
@@ -105,23 +112,26 @@ async fn main() -> std::io::Result<()> {
             // Health and status endpoints (no auth required)
             .route("/health", web::get().to(health_check))
             .route("/api/v1/status", web::get().to(api_status))
-            // Public auth routes (no auth middleware)
+            // Public auth routes with strict rate limiting
             .service(
                 web::scope("/api/v1")
+                    .wrap(Governor::new(&auth_governor_conf))
                     .configure(routes::auth_routes::configure)
             )
-            // Protected routes (require authentication)
+            // Protected routes (require authentication) with general rate limiting
             .service(
                 web::scope("/api/v1")
+                    .wrap(Governor::new(&governor_conf))
                     .wrap(auth_middleware)
                     .configure(routes::payment_routes::configure)
                     .configure(routes::mint_routes::configure)
                     .configure(routes::burn_routes::configure)
                     .configure(routes::kyc_routes::configure)
             )
-            // Admin routes (require admin API key)
+            // Admin routes (require admin API key) with general rate limiting
             .service(
                 web::scope("/api/v1")
+                    .wrap(Governor::new(&governor_conf))
                     .wrap(admin_middleware)
                     .configure(routes::admin_routes::configure)
             )
@@ -131,10 +141,59 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-async fn health_check() -> HttpResponse {
-    HttpResponse::Ok().json(serde_json::json!({
+async fn health_check(
+    db_pool: web::Data<sqlx::PgPool>,
+    chain_client: web::Data<chain::client::VelocityClient>,
+    config: web::Data<Config>,
+) -> HttpResponse {
+    let mut checks = serde_json::Map::new();
+    let mut all_healthy = true;
+
+    // Check database connection
+    match sqlx::query("SELECT 1").fetch_one(db_pool.get_ref()).await {
+        Ok(_) => {
+            checks.insert("database".to_string(), serde_json::json!({
+                "status": "healthy",
+                "message": "Database connection successful"
+            }));
+        }
+        Err(e) => {
+            all_healthy = false;
+            checks.insert("database".to_string(), serde_json::json!({
+                "status": "unhealthy",
+                "message": format!("Database connection failed: {}", e)
+            }));
+        }
+    }
+
+    // Check blockchain connection by getting genesis hash
+    let genesis_hash = chain_client.get_ref().genesis_hash();
+    checks.insert("blockchain".to_string(), serde_json::json!({
         "status": "healthy",
-        "service": "velopay-api"
+        "genesis_hash": format!("{:?}", genesis_hash)
+    }));
+
+    // Check critical configuration
+    let config_healthy = config.jwt_secret.len() >= 32 && config.admin_api_key.len() >= 32;
+    checks.insert("configuration".to_string(), serde_json::json!({
+        "status": if config_healthy { "healthy" } else { "unhealthy" },
+        "message": if config_healthy { "Configuration valid" } else { "Invalid configuration" }
+    }));
+
+    if !config_healthy {
+        all_healthy = false;
+    }
+
+    let status_code = if all_healthy {
+        actix_web::http::StatusCode::OK
+    } else {
+        actix_web::http::StatusCode::SERVICE_UNAVAILABLE
+    };
+
+    HttpResponse::build(status_code).json(serde_json::json!({
+        "status": if all_healthy { "healthy" } else { "unhealthy" },
+        "service": "velopay-api",
+        "checks": checks
     }))
 }
 

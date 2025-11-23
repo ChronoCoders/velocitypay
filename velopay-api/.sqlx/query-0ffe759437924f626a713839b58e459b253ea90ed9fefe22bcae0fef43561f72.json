@@ -39,8 +39,8 @@
                 "pending",
                 "reserved",
                 "approved",
-                "completed",
-                "rejected"
+                "rejected",
+                "completed"
               ]
             }
           }

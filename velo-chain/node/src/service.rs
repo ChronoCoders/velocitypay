@@ -104,7 +104,7 @@ pub fn new_partial(
             },
             spawner: &task_manager.spawn_essential_handle(),
             registry: config.prometheus_registry(),
-            check_for_equivocation: sc_consensus_slots::CheckForEquivocation::default(),
+            check_for_equivocation: sc_consensus_aura::CheckForEquivocation::default(),
             telemetry: telemetry.as_ref().map(|x| x.handle()),
             compatibility_mode: sc_consensus_aura::CompatibilityMode::default(),
         },

@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![allow(deprecated)]
 
 pub use pallet::*;
 
@@ -84,7 +83,7 @@ pub mod pallet {
     #[pallet::call]
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(30_000_000, 0))]
         pub fn set_verifier(origin: OriginFor<T>, verifier: T::AccountId) -> DispatchResult {
             ensure_root(origin)?;
             <KycVerifier<T>>::put(&verifier);
@@ -93,7 +92,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(1)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(30_000_000, 0))]
         pub fn submit_kyc(
             origin: OriginFor<T>,
             document_hash: T::Hash,
@@ -130,7 +129,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(2)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(30_000_000, 0))]
         pub fn verify_kyc(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
             let verifier = ensure_signed(origin)?;
             let authorized_verifier = Self::kyc_verifier().ok_or(Error::<T>::NotVerifier)?;
@@ -158,7 +157,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(3)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(30_000_000, 0))]
         pub fn reject_kyc(origin: OriginFor<T>, account: T::AccountId) -> DispatchResult {
             let verifier = ensure_signed(origin)?;
             let authorized_verifier = Self::kyc_verifier().ok_or(Error::<T>::NotVerifier)?;

@@ -38,8 +38,8 @@
               "Enum": [
                 "pending",
                 "approved",
-                "completed",
-                "rejected"
+                "rejected",
+                "completed"
               ]
             }
           }
