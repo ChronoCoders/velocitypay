@@ -24,7 +24,6 @@ pub struct KycSubmissionRecord {
     pub status: KycStatus,
     pub verified_by: Option<Uuid>,
     pub created_at: Option<DateTime<Utc>>,
-    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct KycRepository<'a> {
@@ -61,7 +60,7 @@ impl<'a> KycRepository<'a> {
             )
             VALUES ($1, $2, $3, $4, $5, $6, 'pending')
             RETURNING id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                      status as "status: KycStatus", verified_by, created_at, updated_at
+                      status as "status: KycStatus", verified_by, created_at
             "#,
             user_id,
             wallet_address,
@@ -76,53 +75,13 @@ impl<'a> KycRepository<'a> {
         Ok(kyc)
     }
 
-    /// Verify KYC submission
-    pub async fn verify(&self, id: Uuid, verified_by: Uuid) -> Result<KycSubmissionRecord> {
-        let kyc = sqlx::query_as!(
-            KycSubmissionRecord,
-            r#"
-            UPDATE kyc_submissions
-            SET status = 'verified', verified_by = $1, updated_at = NOW()
-            WHERE id = $2
-            RETURNING id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                      status as "status: KycStatus", verified_by, created_at, updated_at
-            "#,
-            verified_by,
-            id
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(kyc)
-    }
-
-    /// Reject KYC submission
-    pub async fn reject(&self, id: Uuid, rejected_by: Uuid) -> Result<KycSubmissionRecord> {
-        let kyc = sqlx::query_as!(
-            KycSubmissionRecord,
-            r#"
-            UPDATE kyc_submissions
-            SET status = 'rejected', verified_by = $1, updated_at = NOW()
-            WHERE id = $2
-            RETURNING id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                      status as "status: KycStatus", verified_by, created_at, updated_at
-            "#,
-            rejected_by,
-            id
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(kyc)
-    }
-
     /// Find KYC submission by ID
     pub async fn find_by_id(&self, id: Uuid) -> Result<Option<KycSubmissionRecord>> {
         let kyc = sqlx::query_as!(
             KycSubmissionRecord,
             r#"
             SELECT id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                   status as "status: KycStatus", verified_by, created_at, updated_at
+                   status as "status: KycStatus", verified_by, created_at
             FROM kyc_submissions
             WHERE id = $1
             "#,
@@ -140,7 +99,7 @@ impl<'a> KycRepository<'a> {
             KycSubmissionRecord,
             r#"
             SELECT id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                   status as "status: KycStatus", verified_by, created_at, updated_at
+                   status as "status: KycStatus", verified_by, created_at
             FROM kyc_submissions
             WHERE user_id = $1
             ORDER BY created_at DESC
@@ -165,7 +124,7 @@ impl<'a> KycRepository<'a> {
             KycSubmissionRecord,
             r#"
             SELECT id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                   status as "status: KycStatus", verified_by, created_at, updated_at
+                   status as "status: KycStatus", verified_by, created_at
             FROM kyc_submissions
             WHERE wallet_address = $1
             ORDER BY created_at DESC
@@ -185,7 +144,7 @@ impl<'a> KycRepository<'a> {
             KycSubmissionRecord,
             r#"
             SELECT id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                   status as "status: KycStatus", verified_by, created_at, updated_at
+                   status as "status: KycStatus", verified_by, created_at
             FROM kyc_submissions
             WHERE status = 'pending'
             ORDER BY created_at ASC
@@ -203,7 +162,7 @@ impl<'a> KycRepository<'a> {
             KycSubmissionRecord,
             r#"
             SELECT id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                   status as "status: KycStatus", verified_by, created_at, updated_at
+                   status as "status: KycStatus", verified_by, created_at
             FROM kyc_submissions
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
@@ -224,16 +183,23 @@ impl<'a> KycRepository<'a> {
         status: &str,
         verified_by: Option<Uuid>,
     ) -> Result<KycSubmissionRecord> {
+        let status_enum: KycStatus = match status {
+            "pending" => KycStatus::Pending,
+            "verified" => KycStatus::Verified,
+            "rejected" => KycStatus::Rejected,
+            _ => KycStatus::NotSubmitted,
+        };
+
         let kyc = sqlx::query_as!(
             KycSubmissionRecord,
             r#"
             UPDATE kyc_submissions
-            SET status = $1::kyc_status, verified_by = $2, updated_at = NOW()
+            SET status = $1, verified_by = $2, updated_at = NOW()
             WHERE id = $3
             RETURNING id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
-                      status as "status: KycStatus", verified_by, created_at, updated_at
+                      status as "status: KycStatus", verified_by, created_at
             "#,
-            status,
+            status_enum as KycStatus,
             verified_by,
             id
         )

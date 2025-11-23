@@ -1,0 +1,99 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE burn_requests\n            SET status = $1, chain_request_id = $2, approved_by = $3, updated_at = NOW()\n            WHERE id = $4\n            RETURNING id, user_id, wallet_address, amount, bank_account,\n                      status as \"status: BurnRequestStatus\", chain_request_id,\n                      approved_by, created_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "wallet_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "amount",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "bank_account",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "status: BurnRequestStatus",
+        "type_info": {
+          "Custom": {
+            "name": "burn_request_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "reserved",
+                "approved",
+                "rejected",
+                "completed"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "chain_request_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "approved_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "burn_request_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "reserved",
+                "approved",
+                "rejected",
+                "completed"
+              ]
+            }
+          }
+        },
+        "Int8",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "02e0f475f1aa520d95b40355fc229a0fcbb7e33175c13ba04d0538aa5af2b383"
+}

@@ -23,7 +23,6 @@ pub struct MintRequestRecord {
     pub chain_request_id: Option<i64>,
     pub approved_by: Option<Uuid>,
     pub created_at: Option<DateTime<Utc>>,
-    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct MintRequestRepository<'a> {
@@ -50,80 +49,12 @@ impl<'a> MintRequestRepository<'a> {
             VALUES ($1, $2, $3, $4, 'pending')
             RETURNING id, user_id, wallet_address, amount, bank_reference,
                       status as "status: MintRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
+                      approved_by, created_at
             "#,
             user_id,
             wallet_address,
             amount,
             bank_reference
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(request)
-    }
-
-    /// Update mint request status to approved
-    pub async fn approve(
-        &self,
-        id: Uuid,
-        approved_by: Uuid,
-        chain_request_id: Option<i64>,
-    ) -> Result<MintRequestRecord> {
-        let request = sqlx::query_as!(
-            MintRequestRecord,
-            r#"
-            UPDATE mint_requests
-            SET status = 'approved', approved_by = $1, chain_request_id = $2, updated_at = NOW()
-            WHERE id = $3
-            RETURNING id, user_id, wallet_address, amount, bank_reference,
-                      status as "status: MintRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
-            "#,
-            approved_by,
-            chain_request_id,
-            id
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(request)
-    }
-
-    /// Update mint request status to rejected
-    pub async fn reject(&self, id: Uuid, rejected_by: Uuid) -> Result<MintRequestRecord> {
-        let request = sqlx::query_as!(
-            MintRequestRecord,
-            r#"
-            UPDATE mint_requests
-            SET status = 'rejected', approved_by = $1, updated_at = NOW()
-            WHERE id = $2
-            RETURNING id, user_id, wallet_address, amount, bank_reference,
-                      status as "status: MintRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
-            "#,
-            rejected_by,
-            id
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(request)
-    }
-
-    /// Mark mint request as completed
-    pub async fn complete(&self, id: Uuid) -> Result<MintRequestRecord> {
-        let request = sqlx::query_as!(
-            MintRequestRecord,
-            r#"
-            UPDATE mint_requests
-            SET status = 'completed', updated_at = NOW()
-            WHERE id = $1
-            RETURNING id, user_id, wallet_address, amount, bank_reference,
-                      status as "status: MintRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
-            "#,
-            id
         )
         .fetch_one(self.pool)
         .await?;
@@ -138,7 +69,7 @@ impl<'a> MintRequestRepository<'a> {
             r#"
             SELECT id, user_id, wallet_address, amount, bank_reference,
                    status as "status: MintRequestStatus", chain_request_id,
-                   approved_by, created_at, updated_at
+                   approved_by, created_at
             FROM mint_requests
             WHERE id = $1
             "#,
@@ -157,7 +88,7 @@ impl<'a> MintRequestRepository<'a> {
             r#"
             SELECT id, user_id, wallet_address, amount, bank_reference,
                    status as "status: MintRequestStatus", chain_request_id,
-                   approved_by, created_at, updated_at
+                   approved_by, created_at
             FROM mint_requests
             WHERE user_id = $1
             ORDER BY created_at DESC
@@ -182,7 +113,7 @@ impl<'a> MintRequestRepository<'a> {
             r#"
             SELECT id, user_id, wallet_address, amount, bank_reference,
                    status as "status: MintRequestStatus", chain_request_id,
-                   approved_by, created_at, updated_at
+                   approved_by, created_at
             FROM mint_requests
             WHERE status = 'pending'
             ORDER BY created_at ASC
@@ -201,7 +132,7 @@ impl<'a> MintRequestRepository<'a> {
             r#"
             SELECT id, user_id, wallet_address, amount, bank_reference,
                    status as "status: MintRequestStatus", chain_request_id,
-                   approved_by, created_at, updated_at
+                   approved_by, created_at
             FROM mint_requests
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
@@ -223,17 +154,24 @@ impl<'a> MintRequestRepository<'a> {
         chain_request_id: Option<i64>,
         approved_by: Option<Uuid>,
     ) -> Result<MintRequestRecord> {
+        let status_enum: MintRequestStatus = match status {
+            "approved" => MintRequestStatus::Approved,
+            "rejected" => MintRequestStatus::Rejected,
+            "completed" => MintRequestStatus::Completed,
+            _ => MintRequestStatus::Pending,
+        };
+
         let request = sqlx::query_as!(
             MintRequestRecord,
             r#"
             UPDATE mint_requests
-            SET status = $1::mint_request_status, chain_request_id = $2, approved_by = $3, updated_at = NOW()
+            SET status = $1, chain_request_id = $2, approved_by = $3, updated_at = NOW()
             WHERE id = $4
             RETURNING id, user_id, wallet_address, amount, bank_reference,
                       status as "status: MintRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
+                      approved_by, created_at
             "#,
-            status,
+            status_enum as MintRequestStatus,
             chain_request_id,
             approved_by,
             id

@@ -24,7 +24,6 @@ pub struct BurnRequestRecord {
     pub chain_request_id: Option<i64>,
     pub approved_by: Option<Uuid>,
     pub created_at: Option<DateTime<Utc>>,
-    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct BurnRequestRepository<'a> {
@@ -51,99 +50,12 @@ impl<'a> BurnRequestRepository<'a> {
             VALUES ($1, $2, $3, $4, 'pending')
             RETURNING id, user_id, wallet_address, amount, bank_account,
                       status as "status: BurnRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
+                      approved_by, created_at
             "#,
             user_id,
             wallet_address,
             amount,
             bank_account
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(request)
-    }
-
-    /// Update burn request status to reserved
-    pub async fn mark_reserved(
-        &self,
-        id: Uuid,
-        chain_request_id: i64,
-    ) -> Result<BurnRequestRecord> {
-        let request = sqlx::query_as!(
-            BurnRequestRecord,
-            r#"
-            UPDATE burn_requests
-            SET status = 'reserved', chain_request_id = $1, updated_at = NOW()
-            WHERE id = $2
-            RETURNING id, user_id, wallet_address, amount, bank_account,
-                      status as "status: BurnRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
-            "#,
-            chain_request_id,
-            id
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(request)
-    }
-
-    /// Update burn request status to approved
-    pub async fn approve(&self, id: Uuid, approved_by: Uuid) -> Result<BurnRequestRecord> {
-        let request = sqlx::query_as!(
-            BurnRequestRecord,
-            r#"
-            UPDATE burn_requests
-            SET status = 'approved', approved_by = $1, updated_at = NOW()
-            WHERE id = $2
-            RETURNING id, user_id, wallet_address, amount, bank_account,
-                      status as "status: BurnRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
-            "#,
-            approved_by,
-            id
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(request)
-    }
-
-    /// Update burn request status to rejected
-    pub async fn reject(&self, id: Uuid, rejected_by: Uuid) -> Result<BurnRequestRecord> {
-        let request = sqlx::query_as!(
-            BurnRequestRecord,
-            r#"
-            UPDATE burn_requests
-            SET status = 'rejected', approved_by = $1, updated_at = NOW()
-            WHERE id = $2
-            RETURNING id, user_id, wallet_address, amount, bank_account,
-                      status as "status: BurnRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
-            "#,
-            rejected_by,
-            id
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(request)
-    }
-
-    /// Mark burn request as completed
-    pub async fn complete(&self, id: Uuid) -> Result<BurnRequestRecord> {
-        let request = sqlx::query_as!(
-            BurnRequestRecord,
-            r#"
-            UPDATE burn_requests
-            SET status = 'completed', updated_at = NOW()
-            WHERE id = $1
-            RETURNING id, user_id, wallet_address, amount, bank_account,
-                      status as "status: BurnRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
-            "#,
-            id
         )
         .fetch_one(self.pool)
         .await?;
@@ -158,7 +70,7 @@ impl<'a> BurnRequestRepository<'a> {
             r#"
             SELECT id, user_id, wallet_address, amount, bank_account,
                    status as "status: BurnRequestStatus", chain_request_id,
-                   approved_by, created_at, updated_at
+                   approved_by, created_at
             FROM burn_requests
             WHERE id = $1
             "#,
@@ -177,7 +89,7 @@ impl<'a> BurnRequestRepository<'a> {
             r#"
             SELECT id, user_id, wallet_address, amount, bank_account,
                    status as "status: BurnRequestStatus", chain_request_id,
-                   approved_by, created_at, updated_at
+                   approved_by, created_at
             FROM burn_requests
             WHERE user_id = $1
             ORDER BY created_at DESC
@@ -202,7 +114,7 @@ impl<'a> BurnRequestRepository<'a> {
             r#"
             SELECT id, user_id, wallet_address, amount, bank_account,
                    status as "status: BurnRequestStatus", chain_request_id,
-                   approved_by, created_at, updated_at
+                   approved_by, created_at
             FROM burn_requests
             WHERE status = 'pending' OR status = 'reserved'
             ORDER BY created_at ASC
@@ -221,7 +133,7 @@ impl<'a> BurnRequestRepository<'a> {
             r#"
             SELECT id, user_id, wallet_address, amount, bank_account,
                    status as "status: BurnRequestStatus", chain_request_id,
-                   approved_by, created_at, updated_at
+                   approved_by, created_at
             FROM burn_requests
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
@@ -243,17 +155,25 @@ impl<'a> BurnRequestRepository<'a> {
         chain_request_id: Option<i64>,
         approved_by: Option<Uuid>,
     ) -> Result<BurnRequestRecord> {
+        let status_enum: BurnRequestStatus = match status {
+            "reserved" => BurnRequestStatus::Reserved,
+            "approved" => BurnRequestStatus::Approved,
+            "rejected" => BurnRequestStatus::Rejected,
+            "completed" => BurnRequestStatus::Completed,
+            _ => BurnRequestStatus::Pending,
+        };
+
         let request = sqlx::query_as!(
             BurnRequestRecord,
             r#"
             UPDATE burn_requests
-            SET status = $1::burn_request_status, chain_request_id = $2, approved_by = $3, updated_at = NOW()
+            SET status = $1, chain_request_id = $2, approved_by = $3, updated_at = NOW()
             WHERE id = $4
             RETURNING id, user_id, wallet_address, amount, bank_account,
                       status as "status: BurnRequestStatus", chain_request_id,
-                      approved_by, created_at, updated_at
+                      approved_by, created_at
             "#,
-            status,
+            status_enum as BurnRequestStatus,
             chain_request_id,
             approved_by,
             id
