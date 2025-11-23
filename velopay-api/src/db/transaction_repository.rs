@@ -192,18 +192,24 @@ impl<'a> TransactionRepository<'a> {
         block_number: Option<i64>,
         status: &str,
     ) -> Result<TransactionRecord> {
+        let status_enum: TransactionStatus = match status {
+            "confirmed" => TransactionStatus::Confirmed,
+            "failed" => TransactionStatus::Failed,
+            _ => TransactionStatus::Pending,
+        };
+
         let tx = sqlx::query_as!(
             TransactionRecord,
             r#"
             UPDATE transactions
-            SET transaction_hash = $1, block_number = $2, status = $3::transaction_status, updated_at = NOW()
+            SET transaction_hash = $1, block_number = $2, status = $3, updated_at = NOW()
             WHERE id = $4
             RETURNING id, from_address, to_address, amount, fee, transaction_hash,
                       block_number, status as "status: TransactionStatus", created_at, updated_at
             "#,
             transaction_hash,
             block_number,
-            status,
+            status_enum as TransactionStatus,
             id
         )
         .fetch_one(self.pool)

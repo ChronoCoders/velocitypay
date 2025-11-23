@@ -224,16 +224,23 @@ impl<'a> KycRepository<'a> {
         status: &str,
         verified_by: Option<Uuid>,
     ) -> Result<KycSubmissionRecord> {
+        let status_enum: KycStatus = match status {
+            "pending" => KycStatus::Pending,
+            "verified" => KycStatus::Verified,
+            "rejected" => KycStatus::Rejected,
+            _ => KycStatus::NotSubmitted,
+        };
+
         let kyc = sqlx::query_as!(
             KycSubmissionRecord,
             r#"
             UPDATE kyc_submissions
-            SET status = $1::kyc_status, verified_by = $2, updated_at = NOW()
+            SET status = $1, verified_by = $2, updated_at = NOW()
             WHERE id = $3
             RETURNING id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
                       status as "status: KycStatus", verified_by, created_at, updated_at
             "#,
-            status,
+            status_enum as KycStatus,
             verified_by,
             id
         )

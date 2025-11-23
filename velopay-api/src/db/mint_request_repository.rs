@@ -223,17 +223,24 @@ impl<'a> MintRequestRepository<'a> {
         chain_request_id: Option<i64>,
         approved_by: Option<Uuid>,
     ) -> Result<MintRequestRecord> {
+        let status_enum: MintRequestStatus = match status {
+            "approved" => MintRequestStatus::Approved,
+            "rejected" => MintRequestStatus::Rejected,
+            "completed" => MintRequestStatus::Completed,
+            _ => MintRequestStatus::Pending,
+        };
+
         let request = sqlx::query_as!(
             MintRequestRecord,
             r#"
             UPDATE mint_requests
-            SET status = $1::mint_request_status, chain_request_id = $2, approved_by = $3, updated_at = NOW()
+            SET status = $1, chain_request_id = $2, approved_by = $3, updated_at = NOW()
             WHERE id = $4
             RETURNING id, user_id, wallet_address, amount, bank_reference,
                       status as "status: MintRequestStatus", chain_request_id,
                       approved_by, created_at, updated_at
             "#,
-            status,
+            status_enum as MintRequestStatus,
             chain_request_id,
             approved_by,
             id
