@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VeloPay - Enterprise-Grade Blockchain Payment System with Fiat-Backed Stablecoin">
+    <title>VeloPay | Enterprise Blockchain Payment System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .hero .subtitle {
+            font-size: 24px;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .hero .tagline {
+            font-size: 18px;
+            margin-bottom: 40px;
+            opacity: 0.85;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 35px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border-color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 50px;
+            color: #2d3748;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: #f7fafc;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            color: #2d3748;
+        }
+
+        .feature-card p {
+            color: #4a5568;
+            line-height: 1.7;
+        }
+
+        /* Tech Stack Section */
+        .tech-stack {
+            padding: 80px 0;
+            background: #f7fafc;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .tech-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .tech-card h4 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .tech-list {
+            list-style: none;
+            color: #4a5568;
+        }
+
+        .tech-list li {
+            padding: 5px 0;
+        }
+
+        /* Quick Start Section */
+        .quick-start {
+            padding: 80px 0;
+            background: white;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #f7fafc;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-block pre {
+            margin: 0;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .step {
+            background: #f7fafc;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .step h4 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+
+        /* Roadmap Section */
+        .roadmap {
+            padding: 80px 0;
+            background: #f7fafc;
+        }
+
+        .timeline {
+            max-width: 800px;
+            margin: 40px auto 0;
+        }
+
+        .timeline-item {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .timeline-item h4 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: #667eea;
+        }
+
+        .timeline-item ul {
+            margin-left: 20px;
+            color: #4a5568;
+        }
+
+        .timeline-item.completed {
+            border-left-color: #48bb78;
+        }
+
+        .timeline-item.completed h4 {
+            color: #48bb78;
+        }
+
+        /* Footer */
+        footer {
+            background: #2d3748;
+            color: white;
+            padding: 50px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-section h4 {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section a {
+            color: #a0aec0;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid #4a5568;
+            color: #a0aec0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero .subtitle {
+                font-size: 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo">VeloPay</div>
+                <ul class="nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#tech">Technology</a></li>
+                    <li><a href="#quickstart">Quick Start</a></li>
+                    <li><a href="#roadmap">Roadmap</a></li>
+                    <li><a href="https://github.com/ChronoCoders/velopay">GitHub</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>VeloPay</h1>
+            <div class="subtitle">Enterprise-Grade Blockchain Payment System</div>
+            <div class="tagline">Fiat-Backed Stablecoin | Built on Substrate | Regulatory Compliant</div>
+
+            <div class="badges">
+                <span class="badge">Apache 2.0 License</span>
+                <span class="badge">Rust 1.70+</span>
+                <span class="badge">Substrate stable2407</span>
+                <span class="badge">Production Ready</span>
+            </div>
+
+            <div class="cta-buttons">
+                <a href="https://github.com/ChronoCoders/velopay" class="btn btn-primary">View on GitHub</a>
+                <a href="#quickstart" class="btn btn-secondary">Get Started</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Fiat-Backed Stablecoin</h3>
+                    <p>VCS token with 1:1 USD peg and full reserve backing. Request-based minting with approval workflow and reserved burn system.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Enterprise Security</h3>
+                    <p>Proof of Authority consensus with trusted validators, multi-signature support, and emergency pause mechanism for critical operations.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3>KYC Integration</h3>
+                    <p>Built-in identity verification with document hash submission, multi-tier workflow, and KYC verifier role management.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Compliance Monitoring</h3>
+                    <p>Account flagging system, suspicious activity alerts, transaction limit monitoring, and AML integration ready.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>REST API Gateway</h3>
+                    <p>Complete backend with JWT authentication, wallet operations, payment processing, and admin dashboard. 2,600+ lines of production code.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🪟</div>
+                    <h3>Windows Compatible</h3>
+                    <p>Production-ready batch scripts for multi-validator setup with persistent node keys. Pure CMD, no PowerShell required.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="tech" class="tech-stack">
+        <div class="container">
+            <h2 class="section-title">Technology Stack</h2>
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <h4>Blockchain Layer</h4>
+                    <ul class="tech-list">
+                        <li>Substrate (Polkadot SDK)</li>
+                        <li>Rust 1.70+</li>
+                        <li>Aura Consensus (PoA)</li>
+                        <li>GRANDPA Finality</li>
+                        <li>RocksDB Storage</li>
+                    </ul>
+                </div>
+
+                <div class="tech-card">
+                    <h4>API Gateway</h4>
+                    <ul class="tech-list">
+                        <li>Actix-web 4.4</li>
+                        <li>PostgreSQL 14+</li>
+                        <li>SQLx (compile-time verified)</li>
+                        <li>JWT + bcrypt</li>
+                        <li>Subxt 0.32</li>
+                    </ul>
+                </div>
+
+                <div class="tech-card">
+                    <h4>Custom Pallets</h4>
+                    <ul class="tech-list">
+                        <li>VeloPay Pallet</li>
+                        <li>KYC Pallet</li>
+                        <li>Compliance Pallet</li>
+                        <li>Multi-signature Support</li>
+                        <li>Utility Batch Operations</li>
+                    </ul>
+                </div>
+
+                <div class="tech-card">
+                    <h4>Infrastructure</h4>
+                    <ul class="tech-list">
+                        <li>Tokio Async Runtime</li>
+                        <li>Prometheus Metrics</li>
+                        <li>Windows Batch Scripts</li>
+                        <li>Docker Ready</li>
+                        <li>CI/CD Pipeline</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="quickstart" class="quick-start">
+        <div class="container">
+            <h2 class="section-title">Quick Start</h2>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h4>Build Blockchain</h4>
+                    <p>Clone the repository and build the Substrate node:</p>
+                    <div class="code-block"><pre>cd velo-chain
+rustup target add wasm32-unknown-unknown
+cargo build --release</pre></div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h4>Setup Database</h4>
+                    <p>Create PostgreSQL database and run migrations:</p>
+                    <div class="code-block"><pre>createdb velopay
+cd velopay-api
+sqlx migrate run</pre></div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h4>Start Services</h4>
+                    <p>Launch the blockchain and API gateway:</p>
+                    <div class="code-block"><pre># Terminal 1: Blockchain
+./target/release/velo-node --dev
+
+# Terminal 2: API
+cd velopay-api
+cargo run --release</pre></div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px;">
+                <h3>Windows Multi-Validator Setup</h3>
+                <div class="code-block"><pre>cd velo-chain
+setup-node-keys-v2.bat
+run-alice-final.bat      REM Terminal 1
+run-bob-final.bat        REM Terminal 2</pre></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="roadmap" class="roadmap">
+        <div class="container">
+            <h2 class="section-title">Roadmap</h2>
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <h4>Version 1.0 - Current Release</h4>
+                    <ul>
+                        <li>Complete Substrate blockchain implementation</li>
+                        <li>Custom pallets (VeloPay, KYC, Compliance)</li>
+                        <li>REST API Gateway (2,600+ lines)</li>
+                        <li>PostgreSQL database integration</li>
+                        <li>Windows validator management scripts</li>
+                        <li>JWT authentication system</li>
+                    </ul>
+                </div>
+
+                <div class="timeline-item">
+                    <h4>Version 1.1 - Q1 2025</h4>
+                    <ul>
+                        <li>OpenAPI/Swagger documentation</li>
+                        <li>Docker containerization</li>
+                        <li>Integration test suite</li>
+                        <li>Load testing results</li>
+                        <li>Prometheus/Grafana monitoring</li>
+                    </ul>
+                </div>
+
+                <div class="timeline-item">
+                    <h4>Version 2.0 - Q2 2025</h4>
+                    <ul>
+                        <li>SvelteKit frontend application</li>
+                        <li>Block explorer</li>
+                        <li>Admin dashboard UI</li>
+                        <li>WebSocket real-time updates</li>
+                        <li>Mobile app (React Native)</li>
+                    </ul>
+                </div>
+
+                <div class="timeline-item">
+                    <h4>Version 3.0 - Q3 2025</h4>
+                    <ul>
+                        <li>Cross-chain bridge integration</li>
+                        <li>Advanced analytics dashboard</li>
+                        <li>Machine learning fraud detection</li>
+                        <li>Automated compliance reporting</li>
+                        <li>High availability architecture</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>VeloPay</h4>
+                    <p>Enterprise-grade blockchain payment system with fiat-backed stablecoin. Built with Substrate and Rust.</p>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Documentation</h4>
+                    <ul>
+                        <li><a href="https://github.com/ChronoCoders/velopay/blob/main/README.md">Getting Started</a></li>
+                        <li><a href="https://github.com/ChronoCoders/velopay/blob/main/velopay-api/README.md">API Docs</a></li>
+                        <li><a href="https://github.com/ChronoCoders/velopay/blob/main/velo-chain/BUILD.md">Build Guide</a></li>
+                        <li><a href="https://github.com/ChronoCoders/velopay/blob/main/velopay-api/RELEASE_NOTES.md">Release Notes</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/ChronoCoders/velopay">GitHub Repository</a></li>
+                        <li><a href="https://github.com/ChronoCoders/velopay/issues">Report Issues</a></li>
+                        <li><a href="https://github.com/ChronoCoders/velopay/pulls">Pull Requests</a></li>
+                        <li><a href="https://github.com/ChronoCoders/velopay/discussions">Discussions</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://substrate.io/">Substrate Docs</a></li>
+                        <li><a href="https://www.rust-lang.org/">Rust Language</a></li>
+                        <li><a href="https://polkadot.network/">Polkadot Network</a></li>
+                        <li><a href="https://opensource.org/licenses/Apache-2.0">Apache 2.0 License</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024-2025 ChronoCoders. Licensed under Apache 2.0. Built with Substrate and Rust.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
