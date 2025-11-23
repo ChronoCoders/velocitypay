@@ -24,6 +24,7 @@ pub struct BurnRequestRecord {
     pub chain_request_id: Option<i64>,
     pub approved_by: Option<Uuid>,
     pub created_at: Option<DateTime<Utc>>,
+    #[allow(dead_code)]
     pub updated_at: Option<DateTime<Utc>>,
 }
 
@@ -65,6 +66,7 @@ impl<'a> BurnRequestRepository<'a> {
     }
 
     /// Update burn request status to reserved
+    #[allow(dead_code)]
     pub async fn mark_reserved(
         &self,
         id: Uuid,
@@ -90,6 +92,7 @@ impl<'a> BurnRequestRepository<'a> {
     }
 
     /// Update burn request status to approved
+    #[allow(dead_code)]
     pub async fn approve(&self, id: Uuid, approved_by: Uuid) -> Result<BurnRequestRecord> {
         let request = sqlx::query_as!(
             BurnRequestRecord,
@@ -111,6 +114,7 @@ impl<'a> BurnRequestRepository<'a> {
     }
 
     /// Update burn request status to rejected
+    #[allow(dead_code)]
     pub async fn reject(&self, id: Uuid, rejected_by: Uuid) -> Result<BurnRequestRecord> {
         let request = sqlx::query_as!(
             BurnRequestRecord,
@@ -132,6 +136,7 @@ impl<'a> BurnRequestRepository<'a> {
     }
 
     /// Mark burn request as completed
+    #[allow(dead_code)]
     pub async fn complete(&self, id: Uuid) -> Result<BurnRequestRecord> {
         let request = sqlx::query_as!(
             BurnRequestRecord,

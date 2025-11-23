@@ -19,7 +19,7 @@ pub async fn create_pool(database_url: &str) -> Result<PgPool> {
 
 /// Run database migrations
 /// Note: Migrations are embedded at compile time. Ensure migrations/ directory exists.
-pub async fn run_migrations(pool: &PgPool) -> Result<()> {
+pub async fn run_migrations(_pool: &PgPool) -> Result<()> {
     // Commented out for Windows compatibility - migrations already applied
     // sqlx::migrate!()
     //     .run(pool)

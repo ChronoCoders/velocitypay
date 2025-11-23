@@ -24,6 +24,7 @@ pub struct KycSubmissionRecord {
     pub status: KycStatus,
     pub verified_by: Option<Uuid>,
     pub created_at: Option<DateTime<Utc>>,
+    #[allow(dead_code)]
     pub updated_at: Option<DateTime<Utc>>,
 }
 
@@ -77,6 +78,7 @@ impl<'a> KycRepository<'a> {
     }
 
     /// Verify KYC submission
+    #[allow(dead_code)]
     pub async fn verify(&self, id: Uuid, verified_by: Uuid) -> Result<KycSubmissionRecord> {
         let kyc = sqlx::query_as!(
             KycSubmissionRecord,
@@ -97,6 +99,7 @@ impl<'a> KycRepository<'a> {
     }
 
     /// Reject KYC submission
+    #[allow(dead_code)]
     pub async fn reject(&self, id: Uuid, rejected_by: Uuid) -> Result<KycSubmissionRecord> {
         let kyc = sqlx::query_as!(
             KycSubmissionRecord,

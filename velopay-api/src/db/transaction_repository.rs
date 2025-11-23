@@ -22,6 +22,7 @@ pub struct TransactionRecord {
     pub block_number: Option<i64>,
     pub status: TransactionStatus,
     pub created_at: Option<DateTime<Utc>>,
+    #[allow(dead_code)]
     pub updated_at: Option<DateTime<Utc>>,
 }
 
@@ -62,6 +63,7 @@ impl<'a> TransactionRepository<'a> {
     }
 
     /// Update transaction with blockchain details
+    #[allow(dead_code)]
     pub async fn update_confirmed(
         &self,
         id: Uuid,
@@ -88,6 +90,7 @@ impl<'a> TransactionRepository<'a> {
     }
 
     /// Mark transaction as failed
+    #[allow(dead_code)]
     pub async fn mark_failed(&self, id: Uuid) -> Result<TransactionRecord> {
         let tx = sqlx::query_as!(
             TransactionRecord,

@@ -23,6 +23,7 @@ pub struct MintRequestRecord {
     pub chain_request_id: Option<i64>,
     pub approved_by: Option<Uuid>,
     pub created_at: Option<DateTime<Utc>>,
+    #[allow(dead_code)]
     pub updated_at: Option<DateTime<Utc>>,
 }
 
@@ -64,6 +65,7 @@ impl<'a> MintRequestRepository<'a> {
     }
 
     /// Update mint request status to approved
+    #[allow(dead_code)]
     pub async fn approve(
         &self,
         id: Uuid,
@@ -91,6 +93,7 @@ impl<'a> MintRequestRepository<'a> {
     }
 
     /// Update mint request status to rejected
+    #[allow(dead_code)]
     pub async fn reject(&self, id: Uuid, rejected_by: Uuid) -> Result<MintRequestRecord> {
         let request = sqlx::query_as!(
             MintRequestRecord,
@@ -112,6 +115,7 @@ impl<'a> MintRequestRepository<'a> {
     }
 
     /// Mark mint request as completed
+    #[allow(dead_code)]
     pub async fn complete(&self, id: Uuid) -> Result<MintRequestRecord> {
         let request = sqlx::query_as!(
             MintRequestRecord,
