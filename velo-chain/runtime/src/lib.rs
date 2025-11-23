@@ -29,7 +29,7 @@ use frame_support::{
 use pallet_grandpa::{
     fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
 };
-use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter, Multiplier};
+use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter, Multiplier};
 
 pub use frame_system::Call as SystemCall;
 pub use pallet_balances::Call as BalancesCall;
@@ -87,7 +87,7 @@ pub const MAXIMUM_BLOCK_LENGTH: u32 = 5 * 1024 * 1024;
 pub fn native_version() -> NativeVersion {
     NativeVersion {
         runtime_version: VERSION,
-        can_author_with: sp_std::collections::btree_set::BTreeSet::default(),
+        can_author_with: Default::default(),
     }
 }
 
@@ -190,7 +190,7 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+    type OnChargeTransaction = FungibleAdapter<Balances, ()>;
     type OperationalFeeMultiplier = ConstU8<5>;
     type WeightToFee = IdentityFee<Balance>;
     type LengthToFee = IdentityFee<Balance>;

@@ -322,9 +322,6 @@ impl ChainOperations {
 
     /// Extract mint request ID from blockchain events
     fn extract_mint_request_id(result: &subxt::blocks::ExtrinsicEvents<subxt::PolkadotConfig>) -> Result<u64> {
-        // Find the MintRequested event
-        let mint_requested_event = velo_runtime::velo_pay::events::MintRequested;
-
         for event in result.iter() {
             let event = event.map_err(|e| anyhow!("Failed to decode event: {:?}", e))?;
 
