@@ -1,9 +1,11 @@
-use crate::db::burn_repository::{BurnRepository, BurnRequestRecord};
+use crate::db::burn_request_repository::{BurnRequestRepository, BurnRequestRecord};
 use crate::models::response::BurnRequestResponse;
 use crate::models::burn_request::BurnRequestStatus;
 use anyhow::{Result, anyhow};
+use chrono::Utc;
 use rust_decimal::Decimal;
 use sqlx::PgPool;
+use std::str::FromStr;
 use uuid::Uuid;
 
 pub struct BurnService;
@@ -22,7 +24,7 @@ impl BurnService {
         amount: Decimal,
         bank_account: &str,
     ) -> Result<BurnRequestResponse> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         // Validate amount
         if amount <= Decimal::ZERO {
@@ -31,7 +33,7 @@ impl BurnService {
 
         // Create burn request
         let burn_request = repo
-            .create(user_id, wallet_address, amount, bank_account)
+            .create(user_id, wallet_address, &amount.to_string(), bank_account)
             .await?;
 
         Ok(Self::burn_request_to_response(burn_request))
@@ -43,7 +45,7 @@ impl BurnService {
         pool: &PgPool,
         request_id: Uuid,
     ) -> Result<BurnRequestResponse> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         let burn_request = repo
             .find_by_id(request_id)
@@ -59,7 +61,7 @@ impl BurnService {
         pool: &PgPool,
         user_id: Uuid,
     ) -> Result<Vec<BurnRequestResponse>> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         let burn_requests = repo.find_by_user_id(user_id).await?;
 
@@ -74,7 +76,7 @@ impl BurnService {
         &self,
         pool: &PgPool,
     ) -> Result<Vec<BurnRequestResponse>> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         let burn_requests = repo.find_pending().await?;
 
@@ -91,7 +93,7 @@ impl BurnService {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<BurnRequestResponse>> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         let burn_requests = repo.find_all(limit, offset).await?;
 
@@ -109,7 +111,7 @@ impl BurnService {
         admin_id: Uuid,
         chain_request_id: Option<i64>,
     ) -> Result<BurnRequestResponse> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         // Check if request exists and is pending
         let existing = repo
@@ -117,7 +119,8 @@ impl BurnService {
             .await?
             .ok_or_else(|| anyhow!("Burn request not found"))?;
 
-        if existing.status != "pending" && existing.status != "reserved" {
+        use crate::db::burn_request_repository::BurnRequestStatus as DbStatus;
+        if !matches!(existing.status, DbStatus::Pending | DbStatus::Reserved) {
             return Err(anyhow!("Burn request is not in pending or reserved status"));
         }
 
@@ -136,7 +139,7 @@ impl BurnService {
         request_id: Uuid,
         admin_id: Uuid,
     ) -> Result<BurnRequestResponse> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         // Check if request exists and is pending
         let existing = repo
@@ -144,7 +147,8 @@ impl BurnService {
             .await?
             .ok_or_else(|| anyhow!("Burn request not found"))?;
 
-        if existing.status != "pending" && existing.status != "reserved" {
+        use crate::db::burn_request_repository::BurnRequestStatus as DbStatus;
+        if !matches!(existing.status, DbStatus::Pending | DbStatus::Reserved) {
             return Err(anyhow!("Burn request is not in pending or reserved status"));
         }
 
@@ -163,7 +167,7 @@ impl BurnService {
         request_id: Uuid,
         chain_request_id: i64,
     ) -> Result<BurnRequestResponse> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         let burn_request = repo
             .update_status(request_id, "completed", Some(chain_request_id), None)
@@ -179,7 +183,7 @@ impl BurnService {
         request_id: Uuid,
         chain_request_id: i64,
     ) -> Result<BurnRequestResponse> {
-        let repo = BurnRepository::new(pool);
+        let repo = BurnRequestRepository::new(pool);
 
         let burn_request = repo
             .update_status(request_id, "reserved", Some(chain_request_id), None)
@@ -190,24 +194,29 @@ impl BurnService {
 
     /// Convert database record to response model
     fn burn_request_to_response(record: BurnRequestRecord) -> BurnRequestResponse {
-        let status = match record.status.as_str() {
-            "reserved" => BurnRequestStatus::Reserved,
-            "approved" => BurnRequestStatus::Approved,
-            "rejected" => BurnRequestStatus::Rejected,
-            "completed" => BurnRequestStatus::Completed,
-            _ => BurnRequestStatus::Pending,
+        use crate::db::burn_request_repository::BurnRequestStatus as DbStatus;
+
+        let status = match record.status {
+            DbStatus::Reserved => BurnRequestStatus::Reserved,
+            DbStatus::Approved => BurnRequestStatus::Approved,
+            DbStatus::Rejected => BurnRequestStatus::Rejected,
+            DbStatus::Completed => BurnRequestStatus::Completed,
+            DbStatus::Pending => BurnRequestStatus::Pending,
         };
+
+        // Parse amount from string to Decimal
+        let amount = Decimal::from_str(&record.amount).unwrap_or(Decimal::ZERO);
 
         BurnRequestResponse {
             id: record.id,
             user_id: record.user_id,
             wallet_address: record.wallet_address,
-            amount: record.amount,
+            amount,
             bank_account: record.bank_account,
             status,
             chain_request_id: record.chain_request_id,
             approved_by: record.approved_by,
-            created_at: record.created_at,
+            created_at: record.created_at.unwrap_or_else(|| Utc::now()),
         }
     }
 }

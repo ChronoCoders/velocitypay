@@ -1,9 +1,11 @@
-use crate::db::mint_repository::{MintRepository, MintRequestRecord};
+use crate::db::mint_request_repository::{MintRequestRepository, MintRequestRecord};
 use crate::models::response::MintRequestResponse;
 use crate::models::mint_request::MintRequestStatus;
 use anyhow::{Result, anyhow};
+use chrono::Utc;
 use rust_decimal::Decimal;
 use sqlx::PgPool;
+use std::str::FromStr;
 use uuid::Uuid;
 
 pub struct MintService;
@@ -22,7 +24,7 @@ impl MintService {
         amount: Decimal,
         bank_reference: &str,
     ) -> Result<MintRequestResponse> {
-        let repo = MintRepository::new(pool);
+        let repo = MintRequestRepository::new(pool);
 
         // Validate amount
         if amount <= Decimal::ZERO {
@@ -31,7 +33,7 @@ impl MintService {
 
         // Create mint request
         let mint_request = repo
-            .create(user_id, wallet_address, amount, bank_reference)
+            .create(user_id, wallet_address, &amount.to_string(), bank_reference)
             .await?;
 
         Ok(Self::mint_request_to_response(mint_request))
@@ -43,7 +45,7 @@ impl MintService {
         pool: &PgPool,
         request_id: Uuid,
     ) -> Result<MintRequestResponse> {
-        let repo = MintRepository::new(pool);
+        let repo = MintRequestRepository::new(pool);
 
         let mint_request = repo
             .find_by_id(request_id)
@@ -59,7 +61,7 @@ impl MintService {
         pool: &PgPool,
         user_id: Uuid,
     ) -> Result<Vec<MintRequestResponse>> {
-        let repo = MintRepository::new(pool);
+        let repo = MintRequestRepository::new(pool);
 
         let mint_requests = repo.find_by_user_id(user_id).await?;
 
@@ -74,7 +76,7 @@ impl MintService {
         &self,
         pool: &PgPool,
     ) -> Result<Vec<MintRequestResponse>> {
-        let repo = MintRepository::new(pool);
+        let repo = MintRequestRepository::new(pool);
 
         let mint_requests = repo.find_pending().await?;
 
@@ -91,7 +93,7 @@ impl MintService {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<MintRequestResponse>> {
-        let repo = MintRepository::new(pool);
+        let repo = MintRequestRepository::new(pool);
 
         let mint_requests = repo.find_all(limit, offset).await?;
 
@@ -109,7 +111,7 @@ impl MintService {
         admin_id: Uuid,
         chain_request_id: Option<i64>,
     ) -> Result<MintRequestResponse> {
-        let repo = MintRepository::new(pool);
+        let repo = MintRequestRepository::new(pool);
 
         // Check if request exists and is pending
         let existing = repo
@@ -117,7 +119,8 @@ impl MintService {
             .await?
             .ok_or_else(|| anyhow!("Mint request not found"))?;
 
-        if existing.status != "pending" {
+        use crate::db::mint_request_repository::MintRequestStatus as DbStatus;
+        if !matches!(existing.status, DbStatus::Pending) {
             return Err(anyhow!("Mint request is not in pending status"));
         }
 
@@ -136,7 +139,7 @@ impl MintService {
         request_id: Uuid,
         admin_id: Uuid,
     ) -> Result<MintRequestResponse> {
-        let repo = MintRepository::new(pool);
+        let repo = MintRequestRepository::new(pool);
 
         // Check if request exists and is pending
         let existing = repo
@@ -144,7 +147,8 @@ impl MintService {
             .await?
             .ok_or_else(|| anyhow!("Mint request not found"))?;
 
-        if existing.status != "pending" {
+        use crate::db::mint_request_repository::MintRequestStatus as DbStatus;
+        if !matches!(existing.status, DbStatus::Pending) {
             return Err(anyhow!("Mint request is not in pending status"));
         }
 
@@ -163,7 +167,7 @@ impl MintService {
         request_id: Uuid,
         chain_request_id: i64,
     ) -> Result<MintRequestResponse> {
-        let repo = MintRepository::new(pool);
+        let repo = MintRequestRepository::new(pool);
 
         let mint_request = repo
             .update_status(request_id, "completed", Some(chain_request_id), None)
@@ -174,23 +178,28 @@ impl MintService {
 
     /// Convert database record to response model
     fn mint_request_to_response(record: MintRequestRecord) -> MintRequestResponse {
-        let status = match record.status.as_str() {
-            "approved" => MintRequestStatus::Approved,
-            "rejected" => MintRequestStatus::Rejected,
-            "completed" => MintRequestStatus::Completed,
-            _ => MintRequestStatus::Pending,
+        use crate::db::mint_request_repository::MintRequestStatus as DbStatus;
+
+        let status = match record.status {
+            DbStatus::Approved => MintRequestStatus::Approved,
+            DbStatus::Rejected => MintRequestStatus::Rejected,
+            DbStatus::Completed => MintRequestStatus::Completed,
+            DbStatus::Pending => MintRequestStatus::Pending,
         };
+
+        // Parse amount from string to Decimal
+        let amount = Decimal::from_str(&record.amount).unwrap_or(Decimal::ZERO);
 
         MintRequestResponse {
             id: record.id,
             user_id: record.user_id,
             wallet_address: record.wallet_address,
-            amount: record.amount,
+            amount,
             bank_reference: record.bank_reference,
             status,
             chain_request_id: record.chain_request_id,
             approved_by: record.approved_by,
-            created_at: record.created_at,
+            created_at: record.created_at.unwrap_or_else(|| Utc::now()),
         }
     }
 }

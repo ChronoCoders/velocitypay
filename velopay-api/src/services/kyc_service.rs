@@ -1,8 +1,8 @@
-use crate::db::kyc_repository::{KYCRepository, KYCSubmissionRecord};
+use crate::db::kyc_repository::{KycRepository, KycSubmissionRecord};
 use crate::models::response::KYCSubmissionResponse;
 use crate::models::kyc::KYCStatus;
 use anyhow::{Result, anyhow};
-use chrono::NaiveDate;
+use chrono::{NaiveDate, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -24,21 +24,22 @@ impl KYCService {
         date_of_birth: NaiveDate,
         country: &str,
     ) -> Result<KYCSubmissionResponse> {
-        let repo = KYCRepository::new(pool);
+        let repo = KycRepository::new(pool);
 
         // Check if user already has a KYC submission
         if let Some(existing) = repo.find_by_user_id(user_id).await? {
-            if existing.status == "pending" {
+            use crate::db::kyc_repository::KycStatus as DbStatus;
+            if matches!(existing.status, DbStatus::Pending) {
                 return Err(anyhow!("You already have a pending KYC submission"));
             }
-            if existing.status == "verified" {
+            if matches!(existing.status, DbStatus::Verified) {
                 return Err(anyhow!("Your KYC is already verified"));
             }
         }
 
         // Create KYC submission
         let kyc_submission = repo
-            .create(
+            .submit(
                 user_id,
                 wallet_address,
                 document_hash,
@@ -57,7 +58,7 @@ impl KYCService {
         pool: &PgPool,
         submission_id: Uuid,
     ) -> Result<KYCSubmissionResponse> {
-        let repo = KYCRepository::new(pool);
+        let repo = KycRepository::new(pool);
 
         let kyc_submission = repo
             .find_by_id(submission_id)
@@ -73,7 +74,7 @@ impl KYCService {
         pool: &PgPool,
         user_id: Uuid,
     ) -> Result<Option<KYCSubmissionResponse>> {
-        let repo = KYCRepository::new(pool);
+        let repo = KycRepository::new(pool);
 
         let kyc_submission = repo.find_by_user_id(user_id).await?;
 
@@ -86,7 +87,7 @@ impl KYCService {
         pool: &PgPool,
         wallet_address: &str,
     ) -> Result<Option<KYCSubmissionResponse>> {
-        let repo = KYCRepository::new(pool);
+        let repo = KycRepository::new(pool);
 
         let kyc_submission = repo.find_by_wallet(wallet_address).await?;
 
@@ -98,7 +99,7 @@ impl KYCService {
         &self,
         pool: &PgPool,
     ) -> Result<Vec<KYCSubmissionResponse>> {
-        let repo = KYCRepository::new(pool);
+        let repo = KycRepository::new(pool);
 
         let kyc_submissions = repo.find_pending().await?;
 
@@ -115,7 +116,7 @@ impl KYCService {
         limit: i64,
         offset: i64,
     ) -> Result<Vec<KYCSubmissionResponse>> {
-        let repo = KYCRepository::new(pool);
+        let repo = KycRepository::new(pool);
 
         let kyc_submissions = repo.find_all(limit, offset).await?;
 
@@ -132,7 +133,7 @@ impl KYCService {
         submission_id: Uuid,
         admin_id: Uuid,
     ) -> Result<KYCSubmissionResponse> {
-        let repo = KYCRepository::new(pool);
+        let repo = KycRepository::new(pool);
 
         // Check if submission exists and is pending
         let existing = repo
@@ -140,7 +141,8 @@ impl KYCService {
             .await?
             .ok_or_else(|| anyhow!("KYC submission not found"))?;
 
-        if existing.status != "pending" {
+        use crate::db::kyc_repository::KycStatus as DbStatus;
+        if !matches!(existing.status, DbStatus::Pending) {
             return Err(anyhow!("KYC submission is not in pending status"));
         }
 
@@ -159,7 +161,7 @@ impl KYCService {
         submission_id: Uuid,
         admin_id: Uuid,
     ) -> Result<KYCSubmissionResponse> {
-        let repo = KYCRepository::new(pool);
+        let repo = KycRepository::new(pool);
 
         // Check if submission exists and is pending
         let existing = repo
@@ -167,7 +169,8 @@ impl KYCService {
             .await?
             .ok_or_else(|| anyhow!("KYC submission not found"))?;
 
-        if existing.status != "pending" {
+        use crate::db::kyc_repository::KycStatus as DbStatus;
+        if !matches!(existing.status, DbStatus::Pending) {
             return Err(anyhow!("KYC submission is not in pending status"));
         }
 
@@ -180,13 +183,18 @@ impl KYCService {
     }
 
     /// Convert database record to response model
-    fn kyc_submission_to_response(record: KYCSubmissionRecord) -> KYCSubmissionResponse {
-        let status = match record.status.as_str() {
-            "pending" => KYCStatus::Pending,
-            "verified" => KYCStatus::Verified,
-            "rejected" => KYCStatus::Rejected,
-            _ => KYCStatus::NotSubmitted,
+    fn kyc_submission_to_response(record: KycSubmissionRecord) -> KYCSubmissionResponse {
+        use crate::db::kyc_repository::KycStatus as DbStatus;
+
+        let status = match record.status {
+            DbStatus::Pending => KYCStatus::Pending,
+            DbStatus::Verified => KYCStatus::Verified,
+            DbStatus::Rejected => KYCStatus::Rejected,
+            DbStatus::NotSubmitted => KYCStatus::NotSubmitted,
         };
+
+        // Convert DateTime<Utc> to NaiveDate for date_of_birth
+        let date_of_birth = record.date_of_birth.date_naive();
 
         KYCSubmissionResponse {
             id: record.id,
@@ -194,11 +202,11 @@ impl KYCService {
             wallet_address: record.wallet_address,
             document_hash: record.document_hash,
             full_name: record.full_name,
-            date_of_birth: record.date_of_birth,
+            date_of_birth,
             country: record.country,
             status,
             verified_by: record.verified_by,
-            created_at: record.created_at,
+            created_at: record.created_at.unwrap_or_else(|| Utc::now()),
         }
     }
 }

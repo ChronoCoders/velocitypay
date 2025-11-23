@@ -101,20 +101,26 @@ async fn get_transaction_by_hash(
 
     match repo.find_by_tx_hash(&tx_hash).await {
         Ok(Some(transaction)) => {
+            use crate::db::transaction_repository::TransactionStatus as DbStatus;
+
+            // Parse amount and fee from string to Decimal
+            let amount = Decimal::from_str(&transaction.amount).unwrap_or(Decimal::ZERO);
+            let fee = Decimal::from_str(&transaction.fee).unwrap_or(Decimal::ZERO);
+
             let response = crate::models::response::TransactionResponse {
                 id: transaction.id,
                 from_address: transaction.from_address,
                 to_address: transaction.to_address,
-                amount: transaction.amount,
-                fee: transaction.fee,
-                tx_hash: transaction.tx_hash,
+                amount,
+                fee,
+                tx_hash: transaction.transaction_hash,
                 block_number: transaction.block_number,
-                status: match transaction.status.as_str() {
-                    "confirmed" => crate::models::transaction::TransactionStatus::Confirmed,
-                    "failed" => crate::models::transaction::TransactionStatus::Failed,
-                    _ => crate::models::transaction::TransactionStatus::Pending,
+                status: match transaction.status {
+                    DbStatus::Confirmed => crate::models::transaction::TransactionStatus::Confirmed,
+                    DbStatus::Failed => crate::models::transaction::TransactionStatus::Failed,
+                    DbStatus::Pending => crate::models::transaction::TransactionStatus::Pending,
                 },
-                created_at: transaction.created_at,
+                created_at: transaction.created_at.unwrap_or_else(|| chrono::Utc::now()),
             };
             Ok(HttpResponse::Ok().json(response))
         }

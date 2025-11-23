@@ -2,8 +2,10 @@ use crate::db::transaction_repository::{TransactionRepository, TransactionRecord
 use crate::models::response::TransactionResponse;
 use crate::models::transaction::TransactionStatus;
 use anyhow::{Result, anyhow};
+use chrono::Utc;
 use rust_decimal::Decimal;
 use sqlx::PgPool;
+use std::str::FromStr;
 use uuid::Uuid;
 
 pub struct PaymentService;
@@ -32,7 +34,7 @@ impl PaymentService {
         let fee = amount * Decimal::new(1, 3); // 0.001 = 0.1%
 
         // Create transaction record
-        let transaction = repo.create(from_address, to_address, amount, fee).await?;
+        let transaction = repo.create(from_address, to_address, &amount.to_string(), &fee.to_string()).await?;
 
         Ok(Self::transaction_to_response(transaction))
     }
@@ -97,22 +99,28 @@ impl PaymentService {
 
     /// Convert database record to response model
     fn transaction_to_response(record: TransactionRecord) -> TransactionResponse {
-        let status = match record.status.as_str() {
-            "confirmed" => TransactionStatus::Confirmed,
-            "failed" => TransactionStatus::Failed,
-            _ => TransactionStatus::Pending,
+        use crate::db::transaction_repository::TransactionStatus as DbStatus;
+
+        let status = match record.status {
+            DbStatus::Confirmed => TransactionStatus::Confirmed,
+            DbStatus::Failed => TransactionStatus::Failed,
+            DbStatus::Pending => TransactionStatus::Pending,
         };
+
+        // Parse amount and fee from string to Decimal
+        let amount = Decimal::from_str(&record.amount).unwrap_or(Decimal::ZERO);
+        let fee = Decimal::from_str(&record.fee).unwrap_or(Decimal::ZERO);
 
         TransactionResponse {
             id: record.id,
             from_address: record.from_address,
             to_address: record.to_address,
-            amount: record.amount,
-            fee: record.fee,
-            tx_hash: record.tx_hash,
+            amount,
+            fee,
+            tx_hash: record.transaction_hash,
             block_number: record.block_number,
             status,
-            created_at: record.created_at,
+            created_at: record.created_at.unwrap_or_else(|| Utc::now()),
         }
     }
 }
