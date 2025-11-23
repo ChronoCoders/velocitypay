@@ -1,0 +1,83 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, user_id, wallet_address, amount, bank_account,\n                   status as \"status: BurnRequestStatus\", chain_request_id,\n                   approved_by, created_at\n            FROM burn_requests\n            WHERE id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "wallet_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "amount",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "bank_account",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "status: BurnRequestStatus",
+        "type_info": {
+          "Custom": {
+            "name": "burn_request_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "reserved",
+                "approved",
+                "completed",
+                "rejected"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "chain_request_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "approved_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "cc252aebfcd2e8d353f5be18fe8d0e1059b9f1de09dcc8faaeb086294ff6211e"
+}

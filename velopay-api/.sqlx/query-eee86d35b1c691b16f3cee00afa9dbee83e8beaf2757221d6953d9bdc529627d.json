@@ -1,0 +1,97 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE mint_requests\n            SET status = $1, chain_request_id = $2, approved_by = $3, updated_at = NOW()\n            WHERE id = $4\n            RETURNING id, user_id, wallet_address, amount, bank_reference,\n                      status as \"status: MintRequestStatus\", chain_request_id,\n                      approved_by, created_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "wallet_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "amount",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "bank_reference",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "status: MintRequestStatus",
+        "type_info": {
+          "Custom": {
+            "name": "mint_request_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "approved",
+                "completed",
+                "rejected"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "chain_request_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 7,
+        "name": "approved_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 8,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "mint_request_status",
+            "kind": {
+              "Enum": [
+                "pending",
+                "approved",
+                "completed",
+                "rejected"
+              ]
+            }
+          }
+        },
+        "Int8",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "eee86d35b1c691b16f3cee00afa9dbee83e8beaf2757221d6953d9bdc529627d"
+}

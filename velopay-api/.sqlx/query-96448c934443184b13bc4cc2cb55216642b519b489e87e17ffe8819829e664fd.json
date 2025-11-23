@@ -1,0 +1,102 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE kyc_submissions\n            SET status = $1, verified_by = $2, updated_at = NOW()\n            WHERE id = $3\n            RETURNING id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,\n                      status as \"status: KycStatus\", verified_by, created_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "wallet_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "document_hash",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "full_name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "date_of_birth",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "country",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 7,
+        "name": "status: KycStatus",
+        "type_info": {
+          "Custom": {
+            "name": "kyc_status",
+            "kind": {
+              "Enum": [
+                "notsubmitted",
+                "pending",
+                "verified",
+                "rejected"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "verified_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "kyc_status",
+            "kind": {
+              "Enum": [
+                "notsubmitted",
+                "pending",
+                "verified",
+                "rejected"
+              ]
+            }
+          }
+        },
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "96448c934443184b13bc4cc2cb55216642b519b489e87e17ffe8819829e664fd"
+}
