@@ -22,8 +22,6 @@ pub struct TransactionRecord {
     pub block_number: Option<i64>,
     pub status: TransactionStatus,
     pub created_at: Option<DateTime<Utc>>,
-    #[allow(dead_code)]
-    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct TransactionRepository<'a> {
@@ -49,59 +47,12 @@ impl<'a> TransactionRepository<'a> {
             INSERT INTO transactions (from_address, to_address, amount, fee, status)
             VALUES ($1, $2, $3, $4, 'pending')
             RETURNING id, from_address, to_address, amount, fee, transaction_hash,
-                      block_number, status as "status: TransactionStatus", created_at, updated_at
+                      block_number, status as "status: TransactionStatus", created_at
             "#,
             from_address,
             to_address,
             amount,
             fee
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(tx)
-    }
-
-    /// Update transaction with blockchain details
-    #[allow(dead_code)]
-    pub async fn update_confirmed(
-        &self,
-        id: Uuid,
-        transaction_hash: &str,
-        block_number: i64,
-    ) -> Result<TransactionRecord> {
-        let tx = sqlx::query_as!(
-            TransactionRecord,
-            r#"
-            UPDATE transactions
-            SET transaction_hash = $1, block_number = $2, status = 'confirmed', updated_at = NOW()
-            WHERE id = $3
-            RETURNING id, from_address, to_address, amount, fee, transaction_hash,
-                      block_number, status as "status: TransactionStatus", created_at, updated_at
-            "#,
-            transaction_hash,
-            block_number,
-            id
-        )
-        .fetch_one(self.pool)
-        .await?;
-
-        Ok(tx)
-    }
-
-    /// Mark transaction as failed
-    #[allow(dead_code)]
-    pub async fn mark_failed(&self, id: Uuid) -> Result<TransactionRecord> {
-        let tx = sqlx::query_as!(
-            TransactionRecord,
-            r#"
-            UPDATE transactions
-            SET status = 'failed', updated_at = NOW()
-            WHERE id = $1
-            RETURNING id, from_address, to_address, amount, fee, transaction_hash,
-                      block_number, status as "status: TransactionStatus", created_at, updated_at
-            "#,
-            id
         )
         .fetch_one(self.pool)
         .await?;
@@ -115,7 +66,7 @@ impl<'a> TransactionRepository<'a> {
             TransactionRecord,
             r#"
             SELECT id, from_address, to_address, amount, fee, transaction_hash,
-                   block_number, status as "status: TransactionStatus", created_at, updated_at
+                   block_number, status as "status: TransactionStatus", created_at
             FROM transactions
             WHERE id = $1
             "#,
@@ -133,7 +84,7 @@ impl<'a> TransactionRepository<'a> {
             TransactionRecord,
             r#"
             SELECT id, from_address, to_address, amount, fee, transaction_hash,
-                   block_number, status as "status: TransactionStatus", created_at, updated_at
+                   block_number, status as "status: TransactionStatus", created_at
             FROM transactions
             WHERE transaction_hash = $1
             "#,
@@ -156,7 +107,7 @@ impl<'a> TransactionRepository<'a> {
             TransactionRecord,
             r#"
             SELECT id, from_address, to_address, amount, fee, transaction_hash,
-                   block_number, status as "status: TransactionStatus", created_at, updated_at
+                   block_number, status as "status: TransactionStatus", created_at
             FROM transactions
             WHERE from_address = $1 OR to_address = $1
             ORDER BY created_at DESC
@@ -208,7 +159,7 @@ impl<'a> TransactionRepository<'a> {
             SET transaction_hash = $1, block_number = $2, status = $3, updated_at = NOW()
             WHERE id = $4
             RETURNING id, from_address, to_address, amount, fee, transaction_hash,
-                      block_number, status as "status: TransactionStatus", created_at, updated_at
+                      block_number, status as "status: TransactionStatus", created_at
             "#,
             transaction_hash,
             block_number,
