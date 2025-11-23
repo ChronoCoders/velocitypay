@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use anyhow::Result;
 
 #[derive(Debug, Clone, sqlx::Type)]
@@ -23,8 +23,8 @@ pub struct KycSubmissionRecord {
     pub country: String,
     pub status: KycStatus,
     pub verified_by: Option<Uuid>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct KycRepository<'a> {
@@ -43,9 +43,16 @@ impl<'a> KycRepository<'a> {
         wallet_address: &str,
         document_hash: &str,
         full_name: &str,
-        date_of_birth: DateTime<Utc>,
+        date_of_birth: NaiveDate,
         country: &str,
     ) -> Result<KycSubmissionRecord> {
+        // Convert NaiveDate to DateTime<Utc> for database storage
+        let dob_datetime = date_of_birth.and_hms_opt(0, 0, 0)
+            .unwrap()
+            .and_local_timezone(Utc)
+            .single()
+            .unwrap();
+
         let kyc = sqlx::query_as!(
             KycSubmissionRecord,
             r#"
@@ -60,7 +67,7 @@ impl<'a> KycRepository<'a> {
             wallet_address,
             document_hash,
             full_name,
-            date_of_birth,
+            dob_datetime,
             country
         )
         .fetch_one(self.pool)
@@ -147,6 +154,11 @@ impl<'a> KycRepository<'a> {
         Ok(kyc)
     }
 
+    /// Find KYC submission by user ID (alias for find_by_user)
+    pub async fn find_by_user_id(&self, user_id: Uuid) -> Result<Option<KycSubmissionRecord>> {
+        self.find_by_user(user_id).await
+    }
+
     /// Find KYC submission by wallet address
     pub async fn find_by_wallet(&self, wallet_address: &str) -> Result<Option<KycSubmissionRecord>> {
         let kyc = sqlx::query_as!(
@@ -183,5 +195,51 @@ impl<'a> KycRepository<'a> {
         .await?;
 
         Ok(kycs)
+    }
+
+    /// Get all KYC submissions with pagination (for admin)
+    pub async fn find_all(&self, limit: i64, offset: i64) -> Result<Vec<KycSubmissionRecord>> {
+        let kycs = sqlx::query_as!(
+            KycSubmissionRecord,
+            r#"
+            SELECT id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
+                   status as "status: KycStatus", verified_by, created_at, updated_at
+            FROM kyc_submissions
+            ORDER BY created_at DESC
+            LIMIT $1 OFFSET $2
+            "#,
+            limit,
+            offset
+        )
+        .fetch_all(self.pool)
+        .await?;
+
+        Ok(kycs)
+    }
+
+    /// Update KYC submission status
+    pub async fn update_status(
+        &self,
+        id: Uuid,
+        status: &str,
+        verified_by: Option<Uuid>,
+    ) -> Result<KycSubmissionRecord> {
+        let kyc = sqlx::query_as!(
+            KycSubmissionRecord,
+            r#"
+            UPDATE kyc_submissions
+            SET status = $1::kyc_status, verified_by = $2, updated_at = NOW()
+            WHERE id = $3
+            RETURNING id, user_id, wallet_address, document_hash, full_name, date_of_birth, country,
+                      status as "status: KycStatus", verified_by, created_at, updated_at
+            "#,
+            status,
+            verified_by,
+            id
+        )
+        .fetch_one(self.pool)
+        .await?;
+
+        Ok(kyc)
     }
 }

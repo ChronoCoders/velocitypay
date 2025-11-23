@@ -23,8 +23,8 @@ pub struct BurnRequestRecord {
     pub status: BurnRequestStatus,
     pub chain_request_id: Option<i64>,
     pub approved_by: Option<Uuid>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct BurnRequestRepository<'a> {
@@ -190,6 +190,11 @@ impl<'a> BurnRequestRepository<'a> {
         Ok(requests)
     }
 
+    /// Get all burn requests for a user (alias for find_by_user)
+    pub async fn find_by_user_id(&self, user_id: Uuid) -> Result<Vec<BurnRequestRecord>> {
+        self.find_by_user(user_id).await
+    }
+
     /// Get pending burn requests (for admin)
     pub async fn find_pending(&self) -> Result<Vec<BurnRequestRecord>> {
         let requests = sqlx::query_as!(
@@ -207,5 +212,55 @@ impl<'a> BurnRequestRepository<'a> {
         .await?;
 
         Ok(requests)
+    }
+
+    /// Get all burn requests with pagination (for admin)
+    pub async fn find_all(&self, limit: i64, offset: i64) -> Result<Vec<BurnRequestRecord>> {
+        let requests = sqlx::query_as!(
+            BurnRequestRecord,
+            r#"
+            SELECT id, user_id, wallet_address, amount, bank_account,
+                   status as "status: BurnRequestStatus", chain_request_id,
+                   approved_by, created_at, updated_at
+            FROM burn_requests
+            ORDER BY created_at DESC
+            LIMIT $1 OFFSET $2
+            "#,
+            limit,
+            offset
+        )
+        .fetch_all(self.pool)
+        .await?;
+
+        Ok(requests)
+    }
+
+    /// Update burn request status
+    pub async fn update_status(
+        &self,
+        id: Uuid,
+        status: &str,
+        chain_request_id: Option<i64>,
+        approved_by: Option<Uuid>,
+    ) -> Result<BurnRequestRecord> {
+        let request = sqlx::query_as!(
+            BurnRequestRecord,
+            r#"
+            UPDATE burn_requests
+            SET status = $1::burn_request_status, chain_request_id = $2, approved_by = $3, updated_at = NOW()
+            WHERE id = $4
+            RETURNING id, user_id, wallet_address, amount, bank_account,
+                      status as "status: BurnRequestStatus", chain_request_id,
+                      approved_by, created_at, updated_at
+            "#,
+            status,
+            chain_request_id,
+            approved_by,
+            id
+        )
+        .fetch_one(self.pool)
+        .await?;
+
+        Ok(request)
     }
 }

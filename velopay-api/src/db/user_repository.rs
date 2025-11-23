@@ -9,8 +9,8 @@ pub struct UserRecord {
     pub email: String,
     pub password_hash: String,
     pub wallet_address: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct UserRepository<'a> {

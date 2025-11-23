@@ -22,8 +22,8 @@ pub struct MintRequestRecord {
     pub status: MintRequestStatus,
     pub chain_request_id: Option<i64>,
     pub approved_by: Option<Uuid>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct MintRequestRepository<'a> {
@@ -170,6 +170,11 @@ impl<'a> MintRequestRepository<'a> {
         Ok(requests)
     }
 
+    /// Get all mint requests for a user (alias for find_by_user)
+    pub async fn find_by_user_id(&self, user_id: Uuid) -> Result<Vec<MintRequestRecord>> {
+        self.find_by_user(user_id).await
+    }
+
     /// Get pending mint requests (for admin)
     pub async fn find_pending(&self) -> Result<Vec<MintRequestRecord>> {
         let requests = sqlx::query_as!(
@@ -187,5 +192,55 @@ impl<'a> MintRequestRepository<'a> {
         .await?;
 
         Ok(requests)
+    }
+
+    /// Get all mint requests with pagination (for admin)
+    pub async fn find_all(&self, limit: i64, offset: i64) -> Result<Vec<MintRequestRecord>> {
+        let requests = sqlx::query_as!(
+            MintRequestRecord,
+            r#"
+            SELECT id, user_id, wallet_address, amount, bank_reference,
+                   status as "status: MintRequestStatus", chain_request_id,
+                   approved_by, created_at, updated_at
+            FROM mint_requests
+            ORDER BY created_at DESC
+            LIMIT $1 OFFSET $2
+            "#,
+            limit,
+            offset
+        )
+        .fetch_all(self.pool)
+        .await?;
+
+        Ok(requests)
+    }
+
+    /// Update mint request status
+    pub async fn update_status(
+        &self,
+        id: Uuid,
+        status: &str,
+        chain_request_id: Option<i64>,
+        approved_by: Option<Uuid>,
+    ) -> Result<MintRequestRecord> {
+        let request = sqlx::query_as!(
+            MintRequestRecord,
+            r#"
+            UPDATE mint_requests
+            SET status = $1::mint_request_status, chain_request_id = $2, approved_by = $3, updated_at = NOW()
+            WHERE id = $4
+            RETURNING id, user_id, wallet_address, amount, bank_reference,
+                      status as "status: MintRequestStatus", chain_request_id,
+                      approved_by, created_at, updated_at
+            "#,
+            status,
+            chain_request_id,
+            approved_by,
+            id
+        )
+        .fetch_one(self.pool)
+        .await?;
+
+        Ok(request)
     }
 }

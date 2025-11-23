@@ -21,8 +21,8 @@ pub struct TransactionRecord {
     pub transaction_hash: Option<String>,
     pub block_number: Option<i64>,
     pub status: TransactionStatus,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: Option<DateTime<Utc>>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 pub struct TransactionRepository<'a> {
@@ -167,5 +167,48 @@ impl<'a> TransactionRepository<'a> {
         .await?;
 
         Ok(txs)
+    }
+
+    /// Get transactions for a wallet (alias for find_by_address)
+    pub async fn find_by_wallet(
+        &self,
+        wallet_address: &str,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<TransactionRecord>> {
+        self.find_by_address(wallet_address, limit, offset).await
+    }
+
+    /// Find transaction by blockchain hash (alias for find_by_hash)
+    pub async fn find_by_tx_hash(&self, hash: &str) -> Result<Option<TransactionRecord>> {
+        self.find_by_hash(hash).await
+    }
+
+    /// Update transaction with hash, block number, and status
+    pub async fn update_with_tx_hash(
+        &self,
+        id: Uuid,
+        transaction_hash: &str,
+        block_number: Option<i64>,
+        status: &str,
+    ) -> Result<TransactionRecord> {
+        let tx = sqlx::query_as!(
+            TransactionRecord,
+            r#"
+            UPDATE transactions
+            SET transaction_hash = $1, block_number = $2, status = $3::transaction_status, updated_at = NOW()
+            WHERE id = $4
+            RETURNING id, from_address, to_address, amount, fee, transaction_hash,
+                      block_number, status as "status: TransactionStatus", created_at, updated_at
+            "#,
+            transaction_hash,
+            block_number,
+            status,
+            id
+        )
+        .fetch_one(self.pool)
+        .await?;
+
+        Ok(tx)
     }
 }
