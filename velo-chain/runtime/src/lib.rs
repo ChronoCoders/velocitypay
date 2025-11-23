@@ -18,6 +18,8 @@ use sp_runtime::{
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
+#[cfg(feature = "std")]
+use std::collections::HashSet;
 use sp_version::RuntimeVersion;
 
 use frame_support::{
@@ -87,7 +89,7 @@ pub const MAXIMUM_BLOCK_LENGTH: u32 = 5 * 1024 * 1024;
 pub fn native_version() -> NativeVersion {
     NativeVersion {
         runtime_version: VERSION,
-        can_author_with: Default::default(),
+        can_author_with: HashSet::default(),
     }
 }
 
