@@ -54,13 +54,35 @@ impl Config {
         let admin_seed = env::var(ADMIN_SEED)
             .map_err(|_| anyhow::anyhow!("{} must be set in environment variables (e.g., //Alice for dev)", ADMIN_SEED))?;
 
-        // Parse CORS allowed origins
-        let cors_allowed_origins = env::var(CORS_ALLOWED_ORIGINS)
-            .unwrap_or_else(|_| "http://localhost:3000,http://localhost:5173".to_string())
+        // Parse and validate CORS allowed origins
+        let cors_allowed_origins_str = env::var(CORS_ALLOWED_ORIGINS)
+            .unwrap_or_else(|_| "http://localhost:3000,http://localhost:5173".to_string());
+
+        let cors_allowed_origins: Vec<String> = cors_allowed_origins_str
             .split(',')
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
             .collect();
+
+        // Validate CORS origins
+        for origin in &cors_allowed_origins {
+            // Reject wildcard in production
+            if origin == "*" {
+                log::warn!("CORS wildcard (*) detected. This is insecure for production!");
+            }
+
+            // Validate URL format
+            if !origin.starts_with("http://") && !origin.starts_with("https://") {
+                return Err(anyhow::anyhow!(
+                    "Invalid CORS origin '{}': must start with http:// or https://",
+                    origin
+                ));
+            }
+        }
+
+        if cors_allowed_origins.is_empty() {
+            return Err(anyhow::anyhow!("At least one CORS origin must be configured"));
+        }
 
         Ok(Config {
             database_url: env::var(DATABASE_URL)

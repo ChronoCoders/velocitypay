@@ -1,6 +1,7 @@
 use crate::db::user_repository::{UserRepository, UserRecord};
 use crate::middleware::auth::Claims;
 use crate::models::user::{UserResponse, AuthResponse};
+use crate::utils::{validate_wallet_address, validate_email};
 use anyhow::{Result, anyhow};
 use bcrypt::{hash, verify, DEFAULT_COST};
 use jsonwebtoken::{encode, EncodingKey, Header};
@@ -21,6 +22,26 @@ impl AuthService {
         }
     }
 
+    /// Validate password strength
+    fn validate_password(password: &str) -> Result<()> {
+        if password.len() < 12 {
+            return Err(anyhow!("Password must be at least 12 characters long"));
+        }
+        if !password.chars().any(|c| c.is_uppercase()) {
+            return Err(anyhow!("Password must contain at least one uppercase letter"));
+        }
+        if !password.chars().any(|c| c.is_lowercase()) {
+            return Err(anyhow!("Password must contain at least one lowercase letter"));
+        }
+        if !password.chars().any(|c| c.is_numeric()) {
+            return Err(anyhow!("Password must contain at least one number"));
+        }
+        if !password.chars().any(|c| "!@#$%^&*()_+-=[]{}|;:,.<>?".contains(c)) {
+            return Err(anyhow!("Password must contain at least one special character"));
+        }
+        Ok(())
+    }
+
     /// Register a new user
     pub async fn register(
         &self,
@@ -31,15 +52,26 @@ impl AuthService {
     ) -> Result<AuthResponse> {
         let repo = UserRepository::new(pool);
 
+        // Validate email format
+        validate_email(email)?;
+
+        // Validate password strength
+        Self::validate_password(password)?;
+
+        // Validate wallet address format if provided
+        if let Some(wallet) = wallet_address {
+            validate_wallet_address(wallet)?;
+        }
+
         // Check if user already exists
         if repo.find_by_email(email).await?.is_some() {
-            return Err(anyhow!("User with this email already exists"));
+            return Err(anyhow!("Registration failed. Please try a different email address."));
         }
 
         // Check if wallet address is already taken
         if let Some(wallet) = wallet_address {
             if repo.find_by_wallet(wallet).await?.is_some() {
-                return Err(anyhow!("Wallet address already registered"));
+                return Err(anyhow!("Registration failed. This wallet address is not available."));
             }
         }
 
@@ -72,6 +104,9 @@ impl AuthService {
         password: &str,
     ) -> Result<AuthResponse> {
         let repo = UserRepository::new(pool);
+
+        // Validate email format
+        validate_email(email)?;
 
         // Find user by email
         let user = repo
@@ -126,10 +161,13 @@ impl AuthService {
     ) -> Result<UserResponse> {
         let repo = UserRepository::new(pool);
 
+        // Validate wallet address format
+        validate_wallet_address(wallet_address)?;
+
         // Check if wallet address is already taken by another user
         if let Some(existing_user) = repo.find_by_wallet(wallet_address).await? {
             if existing_user.id != user_id {
-                return Err(anyhow!("Wallet address already registered to another user"));
+                return Err(anyhow!("This wallet address is not available"));
             }
         }
 

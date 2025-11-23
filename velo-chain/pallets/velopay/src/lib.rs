@@ -1,5 +1,4 @@
 #![cfg_attr(not(feature = "std"), no_std)]
-#![allow(deprecated)]
 
 pub use pallet::*;
 
@@ -215,8 +214,9 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
+        /// Set mint authority - Simple storage write
         #[pallet::call_index(0)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(10_000_000, 0))]
         pub fn set_mint_authority(
             origin: OriginFor<T>,
             authority: T::AccountId,
@@ -227,8 +227,9 @@ pub mod pallet {
             Ok(())
         }
 
+        /// Set burn authority - Simple storage write
         #[pallet::call_index(1)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(10_000_000, 0))]
         pub fn set_burn_authority(
             origin: OriginFor<T>,
             authority: T::AccountId,
@@ -240,7 +241,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(2)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn set_transaction_fee(origin: OriginFor<T>, fee_basis_points: u32) -> DispatchResult {
             ensure_root(origin)?;
             ensure!(
@@ -255,7 +256,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(3)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn pause(origin: OriginFor<T>) -> DispatchResult {
             ensure_root(origin)?;
             <Paused<T>>::put(true);
@@ -264,7 +265,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(4)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn unpause(origin: OriginFor<T>) -> DispatchResult {
             ensure_root(origin)?;
             <Paused<T>>::put(false);
@@ -273,7 +274,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(5)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn request_mint(
             origin: OriginFor<T>,
             amount: BalanceOf<T>,
@@ -314,7 +315,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(6)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn approve_mint(
             origin: OriginFor<T>,
             request_id: u64,
@@ -359,7 +360,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(7)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn reject_mint(
             origin: OriginFor<T>,
             request_id: u64,
@@ -392,7 +393,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(8)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn request_burn(
             origin: OriginFor<T>,
             amount: BalanceOf<T>,
@@ -442,7 +443,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(9)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn approve_burn(
             origin: OriginFor<T>,
             request_id: u64,
@@ -492,7 +493,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(10)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn reject_burn(
             origin: OriginFor<T>,
             request_id: u64,
@@ -531,7 +532,7 @@ pub mod pallet {
         }
 
         #[pallet::call_index(11)]
-        #[pallet::weight(10_000)]
+        #[pallet::weight(Weight::from_parts(50_000_000, 0))]
         pub fn transfer(
             origin: OriginFor<T>,
             dest: T::AccountId,

@@ -3,8 +3,12 @@ use rust_decimal::Decimal;
 use sp_core::{sr25519::Pair, Pair as PairT, crypto::Ss58Codec};
 use sp_keyring::AccountKeyring;
 use subxt::tx::PairSigner;
+use tokio::time::{timeout, Duration};
 
 use super::client::{VelocityClient, velo_runtime};
+
+// Timeout for blockchain operations (30 seconds)
+const BLOCKCHAIN_TIMEOUT_SECS: u64 = 30;
 
 /// Blockchain operations service for submitting extrinsics
 pub struct ChainOperations {
@@ -55,21 +59,29 @@ impl ChainOperations {
             .velo_pay()
             .request_mint(amount_u128);
 
-        // Submit and watch the extrinsic
-        let result = client
-            .tx()
-            .sign_and_submit_then_watch_default(&mint_call, &self.signer)
-            .await?
-            .wait_for_finalized_success()
-            .await?;
+        // Submit and watch the extrinsic with timeout
+        let result = timeout(
+            Duration::from_secs(BLOCKCHAIN_TIMEOUT_SECS),
+            async {
+                client
+                    .tx()
+                    .sign_and_submit_then_watch_default(&mint_call, &self.signer)
+                    .await?
+                    .wait_for_finalized_success()
+                    .await
+            }
+        )
+        .await
+        .map_err(|_| anyhow!("Blockchain operation timed out after {} seconds", BLOCKCHAIN_TIMEOUT_SECS))??;
 
         // Get the transaction hash
         let tx_hash = format!("0x{}", hex::encode(result.extrinsic_hash()));
 
-        // Extract request_id from events (placeholder for now)
-        let request_id = 0u64; // TODO: Parse from events
+        // Extract request_id from events
+        let request_id = Self::extract_mint_request_id(&result)?;
 
-        log::info!("Mint request submitted - tx_hash: {}, amount: {}", tx_hash, amount);
+        log::info!("Mint request submitted - tx_hash: {}, request_id: {}", tx_hash, request_id);
+        log::debug!("Mint request amount: {}", amount);
 
         Ok((tx_hash, request_id))
     }
@@ -84,16 +96,24 @@ impl ChainOperations {
             .velo_pay()
             .approve_mint(request_id);
 
-        let result = client
-            .tx()
-            .sign_and_submit_then_watch_default(&approve_call, &self.signer)
-            .await?
-            .wait_for_finalized_success()
-            .await?;
+        let result = timeout(
+            Duration::from_secs(BLOCKCHAIN_TIMEOUT_SECS),
+            async {
+                client
+                    .tx()
+                    .sign_and_submit_then_watch_default(&approve_call, &self.signer)
+                    .await?
+                    .wait_for_finalized_success()
+                    .await
+            }
+        )
+        .await
+        .map_err(|_| anyhow!("Blockchain operation timed out after {} seconds", BLOCKCHAIN_TIMEOUT_SECS))??;
 
         let tx_hash = format!("0x{}", hex::encode(result.extrinsic_hash()));
 
-        log::info!("Mint approved - request_id: {}, tx_hash: {}", request_id, tx_hash);
+        log::info!("Mint approved - request_id: {}", request_id);
+        log::debug!("Mint approval tx_hash: {}", tx_hash);
 
         Ok(tx_hash)
     }
@@ -108,16 +128,24 @@ impl ChainOperations {
             .velo_pay()
             .reject_mint(request_id);
 
-        let result = client
-            .tx()
-            .sign_and_submit_then_watch_default(&reject_call, &self.signer)
-            .await?
-            .wait_for_finalized_success()
-            .await?;
+        let result = timeout(
+            Duration::from_secs(BLOCKCHAIN_TIMEOUT_SECS),
+            async {
+                client
+                    .tx()
+                    .sign_and_submit_then_watch_default(&reject_call, &self.signer)
+                    .await?
+                    .wait_for_finalized_success()
+                    .await
+            }
+        )
+        .await
+        .map_err(|_| anyhow!("Blockchain operation timed out after {} seconds", BLOCKCHAIN_TIMEOUT_SECS))??;
 
         let tx_hash = format!("0x{}", hex::encode(result.extrinsic_hash()));
 
-        log::info!("Mint rejected - request_id: {}, tx_hash: {}", request_id, tx_hash);
+        log::info!("Mint rejected - request_id: {}", request_id);
+        log::debug!("Mint rejection tx_hash: {}", tx_hash);
 
         Ok(tx_hash)
     }
@@ -136,17 +164,27 @@ impl ChainOperations {
             .velo_pay()
             .request_burn(amount_u128);
 
-        let result = client
-            .tx()
-            .sign_and_submit_then_watch_default(&burn_call, &self.signer)
-            .await?
-            .wait_for_finalized_success()
-            .await?;
+        let result = timeout(
+            Duration::from_secs(BLOCKCHAIN_TIMEOUT_SECS),
+            async {
+                client
+                    .tx()
+                    .sign_and_submit_then_watch_default(&burn_call, &self.signer)
+                    .await?
+                    .wait_for_finalized_success()
+                    .await
+            }
+        )
+        .await
+        .map_err(|_| anyhow!("Blockchain operation timed out after {} seconds", BLOCKCHAIN_TIMEOUT_SECS))??;
 
         let tx_hash = format!("0x{}", hex::encode(result.extrinsic_hash()));
-        let request_id = 0u64; // TODO: Parse from events
 
-        log::info!("Burn request submitted - tx_hash: {}, amount: {}", tx_hash, amount);
+        // Extract request_id from events
+        let request_id = Self::extract_burn_request_id(&result)?;
+
+        log::info!("Burn request submitted - tx_hash: {}, request_id: {}", tx_hash, request_id);
+        log::debug!("Burn request amount: {}", amount);
 
         Ok((tx_hash, request_id))
     }
@@ -161,16 +199,24 @@ impl ChainOperations {
             .velo_pay()
             .approve_burn(request_id);
 
-        let result = client
-            .tx()
-            .sign_and_submit_then_watch_default(&approve_call, &self.signer)
-            .await?
-            .wait_for_finalized_success()
-            .await?;
+        let result = timeout(
+            Duration::from_secs(BLOCKCHAIN_TIMEOUT_SECS),
+            async {
+                client
+                    .tx()
+                    .sign_and_submit_then_watch_default(&approve_call, &self.signer)
+                    .await?
+                    .wait_for_finalized_success()
+                    .await
+            }
+        )
+        .await
+        .map_err(|_| anyhow!("Blockchain operation timed out after {} seconds", BLOCKCHAIN_TIMEOUT_SECS))??;
 
         let tx_hash = format!("0x{}", hex::encode(result.extrinsic_hash()));
 
-        log::info!("Burn approved - request_id: {}, tx_hash: {}", request_id, tx_hash);
+        log::info!("Burn approved - request_id: {}", request_id);
+        log::debug!("Burn approval tx_hash: {}", tx_hash);
 
         Ok(tx_hash)
     }
@@ -185,16 +231,24 @@ impl ChainOperations {
             .velo_pay()
             .reject_burn(request_id);
 
-        let result = client
-            .tx()
-            .sign_and_submit_then_watch_default(&reject_call, &self.signer)
-            .await?
-            .wait_for_finalized_success()
-            .await?;
+        let result = timeout(
+            Duration::from_secs(BLOCKCHAIN_TIMEOUT_SECS),
+            async {
+                client
+                    .tx()
+                    .sign_and_submit_then_watch_default(&reject_call, &self.signer)
+                    .await?
+                    .wait_for_finalized_success()
+                    .await
+            }
+        )
+        .await
+        .map_err(|_| anyhow!("Blockchain operation timed out after {} seconds", BLOCKCHAIN_TIMEOUT_SECS))??;
 
         let tx_hash = format!("0x{}", hex::encode(result.extrinsic_hash()));
 
-        log::info!("Burn rejected - request_id: {}, tx_hash: {}", request_id, tx_hash);
+        log::info!("Burn rejected - request_id: {}", request_id);
+        log::debug!("Burn rejection tx_hash: {}", tx_hash);
 
         Ok(tx_hash)
     }
@@ -214,18 +268,25 @@ impl ChainOperations {
             .velo_pay()
             .transfer(to_account, amount_u128);
 
-        let result = client
-            .tx()
-            .sign_and_submit_then_watch_default(&transfer_call, &self.signer)
-            .await?
-            .wait_for_finalized_success()
-            .await?;
+        let result = timeout(
+            Duration::from_secs(BLOCKCHAIN_TIMEOUT_SECS),
+            async {
+                client
+                    .tx()
+                    .sign_and_submit_then_watch_default(&transfer_call, &self.signer)
+                    .await?
+                    .wait_for_finalized_success()
+                    .await
+            }
+        )
+        .await
+        .map_err(|_| anyhow!("Blockchain operation timed out after {} seconds", BLOCKCHAIN_TIMEOUT_SECS))??;
 
         let tx_hash = format!("0x{}", hex::encode(result.extrinsic_hash()));
         let block_hash = result.block_hash();
 
-        log::info!("Transfer submitted - tx_hash: {}, block: {:?}, to: {}, amount: {}",
-            tx_hash, block_hash, to, amount);
+        log::info!("Transfer submitted - tx_hash: {}, block: {:?}", tx_hash, block_hash);
+        log::debug!("Transfer details - to: {}, amount: {}", to, amount);
 
         Ok(tx_hash)
     }
@@ -257,5 +318,35 @@ impl ChainOperations {
         // Convert sp_core::AccountId32 to subxt::utils::AccountId32
         let bytes: [u8; 32] = sp_account.into();
         Ok(subxt::utils::AccountId32::from(bytes))
+    }
+
+    /// Extract mint request ID from blockchain events
+    fn extract_mint_request_id(result: &subxt::blocks::ExtrinsicEvents<subxt::PolkadotConfig>) -> Result<u64> {
+        // Find the MintRequested event
+        let mint_requested_event = velo_runtime::velo_pay::events::MintRequested;
+
+        for event in result.iter() {
+            let event = event.map_err(|e| anyhow!("Failed to decode event: {:?}", e))?;
+
+            if let Some(mint_event) = event.as_event::<velo_runtime::velo_pay::events::MintRequested>()? {
+                return Ok(mint_event.request_id);
+            }
+        }
+
+        Err(anyhow!("MintRequested event not found in transaction"))
+    }
+
+    /// Extract burn request ID from blockchain events
+    fn extract_burn_request_id(result: &subxt::blocks::ExtrinsicEvents<subxt::PolkadotConfig>) -> Result<u64> {
+        // Find the BurnReserved event (burn requests emit BurnReserved, not BurnRequested)
+        for event in result.iter() {
+            let event = event.map_err(|e| anyhow!("Failed to decode event: {:?}", e))?;
+
+            if let Some(burn_event) = event.as_event::<velo_runtime::velo_pay::events::BurnReserved>()? {
+                return Ok(burn_event.request_id);
+            }
+        }
+
+        Err(anyhow!("BurnReserved event not found in transaction"))
     }
 }
