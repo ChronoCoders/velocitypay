@@ -55,6 +55,9 @@ async fn main() -> std::io::Result<()> {
     let burn_service = Arc::new(services::BurnService::new());
     let kyc_service = Arc::new(services::KYCService::new());
 
+    // ChainOperations must be wrapped in Arc as it contains non-cloneable cryptographic keys
+    let chain_ops = Arc::new(chain_ops);
+
     log::info!("Server starting on http://{}", server_address);
 
     HttpServer::new(move || {
