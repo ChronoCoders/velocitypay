@@ -22,6 +22,8 @@ echo Starting local testnet node with Alice...
 echo RPC endpoint: http://localhost:9944
 echo WebSocket: ws://localhost:9944
 echo.
+echo IMPORTANT: Note the peer ID shown below for multi-node setup.
+echo.
 echo Press Ctrl+C to stop
 echo.
 
@@ -31,7 +33,7 @@ target\release\velo-node.exe purge-chain --chain chain-spec-raw.json --base-path
 REM Create directory
 if not exist "chain-data\alice" mkdir "chain-data\alice"
 
-REM Start node
+REM Start node with no-mdns to reduce bootnode warnings in single-node mode
 target\release\velo-node.exe ^
   --base-path .\chain-data\alice ^
   --chain chain-spec-raw.json ^
@@ -42,4 +44,5 @@ target\release\velo-node.exe ^
   --rpc-cors all ^
   --validator ^
   --rpc-methods Unsafe ^
+  --no-mdns ^
   --unsafe-force-node-key-generation
