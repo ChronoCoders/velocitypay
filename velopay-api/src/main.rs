@@ -142,9 +142,9 @@ async fn main() -> std::io::Result<()> {
 }
 
 async fn health_check(
-    db_pool: web::Data<sqlx::PgPool>,
-    chain_client: web::Data<chain::client::VelocityClient>,
-    config: web::Data<Config>,
+    db_pool: web::Data<Arc<sqlx::PgPool>>,
+    chain_client: web::Data<Arc<chain::client::VelocityClient>>,
+    config: web::Data<Arc<Config>>,
 ) -> HttpResponse {
     let mut checks = serde_json::Map::new();
     let mut all_healthy = true;
