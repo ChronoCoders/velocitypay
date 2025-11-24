@@ -55,11 +55,6 @@ async fn main() -> std::io::Result<()> {
     let burn_service = Arc::new(services::BurnService::new());
     let kyc_service = Arc::new(services::KYCService::new());
 
-    let chain_client = Arc::new(chain_client);
-    let chain_ops = Arc::new(chain_ops);
-    let config = Arc::new(config);
-    let db_pool = Arc::new(db_pool);
-
     log::info!("Server starting on http://{}", server_address);
 
     HttpServer::new(move || {
@@ -142,15 +137,15 @@ async fn main() -> std::io::Result<()> {
 }
 
 async fn health_check(
-    db_pool: web::Data<Arc<sqlx::PgPool>>,
-    chain_client: web::Data<Arc<chain::client::VelocityClient>>,
-    config: web::Data<Arc<Config>>,
+    db_pool: web::Data<sqlx::PgPool>,
+    chain_client: web::Data<chain::client::VelocityClient>,
+    config: web::Data<Config>,
 ) -> HttpResponse {
     let mut checks = serde_json::Map::new();
     let mut all_healthy = true;
 
     // Check database connection
-    match sqlx::query("SELECT 1").fetch_one(db_pool.as_ref().as_ref()).await {
+    match sqlx::query("SELECT 1").fetch_one(db_pool.get_ref()).await {
         Ok(_) => {
             checks.insert("database".to_string(), serde_json::json!({
                 "status": "healthy",
@@ -167,7 +162,7 @@ async fn health_check(
     }
 
     // Check blockchain connection by getting genesis hash
-    let genesis_hash = chain_client.as_ref().as_ref().genesis_hash();
+    let genesis_hash = chain_client.get_ref().genesis_hash();
     checks.insert("blockchain".to_string(), serde_json::json!({
         "status": "healthy",
         "genesis_hash": format!("{:?}", genesis_hash)
