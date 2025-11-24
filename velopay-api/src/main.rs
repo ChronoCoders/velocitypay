@@ -150,7 +150,7 @@ async fn health_check(
     let mut all_healthy = true;
 
     // Check database connection
-    match sqlx::query("SELECT 1").fetch_one(&**db_pool).await {
+    match sqlx::query("SELECT 1").fetch_one(db_pool.as_ref().as_ref()).await {
         Ok(_) => {
             checks.insert("database".to_string(), serde_json::json!({
                 "status": "healthy",
@@ -167,7 +167,7 @@ async fn health_check(
     }
 
     // Check blockchain connection by getting genesis hash
-    let genesis_hash = (&**chain_client).genesis_hash();
+    let genesis_hash = chain_client.as_ref().as_ref().genesis_hash();
     checks.insert("blockchain".to_string(), serde_json::json!({
         "status": "healthy",
         "genesis_hash": format!("{:?}", genesis_hash)
