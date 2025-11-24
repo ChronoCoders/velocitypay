@@ -129,8 +129,8 @@ check-network-status.bat  - Monitor validator connectivity
 
 ┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
 │   Web Frontend      │       │   Mobile App        │       │   Admin Panel       │
-│   (SvelteKit)       │◄─────►│   (React Native)    │◄─────►│   (React)           │
-│                     │       │                     │       │                     │
+│   (SvelteKit)       │◄─────►│   (React Native)    │◄─────►│   (SvelteKit)       │
+│                     │       │                     │       │   Admin Dashboard   │
 └──────────┬──────────┘       └──────────┬──────────┘       └──────────┬──────────┘
            │                             │                             │
            └─────────────────────────────┼─────────────────────────────┘
@@ -281,6 +281,7 @@ curl -X POST http://localhost:8080/api/v1/auth/login \
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
 - **State:** Stores + Context
+- **Applications:** User Dashboard + Admin Panel (unified codebase)
 
 ---
 
@@ -326,7 +327,7 @@ velopay/
 │   ├── migrations/              # Database schema
 │   └── RELEASE_NOTES.md        # API v1.0.0 release notes
 │
-├── velopay-web/                  # Frontend (coming soon)
+├── velopay-web/                  # SvelteKit Frontend (User + Admin)
 │
 └── README.md                     # This file
 ```
@@ -375,9 +376,8 @@ velopay/
 - [ ] Monitoring & metrics (Prometheus/Grafana)
 
 ### Version 2.0 (Q2 2025)
-- [ ] SvelteKit frontend application
-- [ ] Block explorer
-- [ ] Admin dashboard UI
+- [ ] SvelteKit frontend application (User Dashboard + Admin Panel)
+- [ ] Block explorer integration
 - [ ] WebSocket real-time updates
 - [ ] Mobile app (React Native)
 - [ ] Multi-language support
