@@ -12,7 +12,7 @@ use crate::services::BurnService;
 /// Create a burn request (requires authentication)
 async fn create_burn_request(
     pool: web::Data<PgPool>,
-    burn_service: web::Data<BurnService>,
+    burn_service: web::Data<std::sync::Arc<BurnService>>,
     req: HttpRequest,
     burn_req: web::Json<CreateBurnRequest>,
 ) -> Result<HttpResponse> {
@@ -50,7 +50,7 @@ async fn create_burn_request(
 /// Get burn request by ID (requires authentication)
 async fn get_burn_request(
     pool: web::Data<PgPool>,
-    burn_service: web::Data<BurnService>,
+    burn_service: web::Data<std::sync::Arc<BurnService>>,
     req: HttpRequest,
     request_id: web::Path<Uuid>,
 ) -> Result<HttpResponse> {
@@ -70,7 +70,7 @@ async fn get_burn_request(
 /// Get all burn requests for current user (requires authentication)
 async fn get_my_burn_requests(
     pool: web::Data<PgPool>,
-    burn_service: web::Data<BurnService>,
+    burn_service: web::Data<std::sync::Arc<BurnService>>,
     req: HttpRequest,
 ) -> Result<HttpResponse> {
     let user_id = get_user_id(&req)?;
@@ -90,7 +90,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/burn")
             .route("", web::post().to(create_burn_request))
-            .route("/{request_id}", web::get().to(get_burn_request))
-            .route("/my-requests", web::get().to(get_my_burn_requests)),
+            .route("/my-requests", web::get().to(get_my_burn_requests))
+            .route("/{request_id}", web::get().to(get_burn_request)),
     );
 }

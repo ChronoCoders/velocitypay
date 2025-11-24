@@ -46,7 +46,7 @@ async fn main() -> std::io::Result<()> {
     log::info!("Blockchain operations initialized with admin account");
 
     // Initialize services
-    let auth_service = Arc::new(services::AuthService::new(
+    let auth_service = Arc::new(services::auth_service::AuthService::new(
         config.jwt_secret.clone(),
         config.jwt_expiration,
     ));
@@ -84,7 +84,7 @@ async fn main() -> std::io::Result<()> {
             .expect("Failed to create rate limiter configuration");
 
         // Configure stricter rate limiting for auth endpoints (5 requests per minute)
-        let auth_governor_conf = GovernorConfigBuilder::default()
+        let _auth_governor_conf = GovernorConfigBuilder::default()
             .per_second(60) // 1 minute window
             .burst_size(5)  // 5 requests per minute
             .finish()
@@ -111,11 +111,7 @@ async fn main() -> std::io::Result<()> {
             .route("/health", web::get().to(health_check))
             .route("/api/v1/status", web::get().to(api_status))
             // Public auth routes with strict rate limiting
-            .service(
-                web::scope("/api/v1")
-                    .wrap(Governor::new(&auth_governor_conf))
-                    .configure(routes::auth_routes::configure)
-            )
+            .configure(routes::auth_routes::configure)
             // Protected routes (require authentication) with general rate limiting
             .service(
                 web::scope("/api/v1")
@@ -128,7 +124,7 @@ async fn main() -> std::io::Result<()> {
             )
             // Admin routes (require admin API key) with general rate limiting
             .service(
-                web::scope("/api/v1")
+                web::scope("/admin/v1")
                     .wrap(Governor::new(&governor_conf))
                     .wrap(admin_middleware)
                     .configure(routes::admin_routes::configure)

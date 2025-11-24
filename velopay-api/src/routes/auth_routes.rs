@@ -1,15 +1,15 @@
 use actix_web::{web, HttpRequest, HttpResponse, Result};
 use serde_json::json;
 use sqlx::PgPool;
+use std::sync::Arc;
 
 use crate::middleware::auth::{get_user_id, get_claims};
 use crate::models::user::{CreateUserRequest, LoginRequest};
-use crate::services::AuthService;
+use crate::services::auth_service::AuthService;
 
-/// Register a new user
-async fn register(
+pub async fn register(
     pool: web::Data<PgPool>,
-    auth_service: web::Data<AuthService>,
+    auth_service: web::Data<Arc<AuthService>>,
     req: web::Json<CreateUserRequest>,
 ) -> Result<HttpResponse> {
     match auth_service
@@ -28,10 +28,9 @@ async fn register(
     }
 }
 
-/// Login user
-async fn login(
+pub async fn login(
     pool: web::Data<PgPool>,
-    auth_service: web::Data<AuthService>,
+    auth_service: web::Data<Arc<AuthService>>,
     req: web::Json<LoginRequest>,
 ) -> Result<HttpResponse> {
     match auth_service
@@ -45,10 +44,9 @@ async fn login(
     }
 }
 
-/// Get user profile (requires authentication)
-async fn get_profile(
+pub async fn get_profile(
     pool: web::Data<PgPool>,
-    auth_service: web::Data<AuthService>,
+    auth_service: web::Data<Arc<AuthService>>,
     req: HttpRequest,
 ) -> Result<HttpResponse> {
     let user_id = get_user_id(&req)?;
@@ -61,10 +59,9 @@ async fn get_profile(
     }
 }
 
-/// Update wallet address (requires authentication)
-async fn update_wallet(
+pub async fn update_wallet(
     pool: web::Data<PgPool>,
-    auth_service: web::Data<AuthService>,
+    auth_service: web::Data<Arc<AuthService>>,
     req: HttpRequest,
     wallet: web::Json<serde_json::Value>,
 ) -> Result<HttpResponse> {
@@ -88,8 +85,7 @@ async fn update_wallet(
     }
 }
 
-/// Get JWT token claims info (requires authentication)
-async fn get_token_info(req: HttpRequest) -> Result<HttpResponse> {
+pub async fn get_token_info(req: HttpRequest) -> Result<HttpResponse> {
     let claims = get_claims(&req)?;
 
     Ok(HttpResponse::Ok().json(json!({
@@ -101,7 +97,7 @@ async fn get_token_info(req: HttpRequest) -> Result<HttpResponse> {
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
-        web::scope("/auth")
+        web::scope("/api/v1/auth")
             .route("/register", web::post().to(register))
             .route("/login", web::post().to(login))
             .route("/profile", web::get().to(get_profile))

@@ -1,4 +1,4 @@
-# VelocityPay - Blockchain Payment System
+# VeloPay - Blockchain Payment System
 # ==============================================
 
 # Environment Variables & Secrets
@@ -18,8 +18,8 @@ api-keys.json
 # Chain data and database
 /data/
 **/data/
-velocity-chain/data/
-velocity-chain/chain-data/
+velo-chain/data/
+velo-chain/chain-data/
 # Database files (not source code)
 /*.db
 **/*.db
@@ -66,10 +66,10 @@ incremental/
 *.profdata
 
 # API Gateway
-velocitypay-api/target/
-velocitypay-api/Cargo.lock
-velocitypay-api/.env
-velocitypay-api/.env.local
+velopay-api/target/
+velopay-api/Cargo.lock
+velopay-api/.env
+velopay-api/.env.local
 
 # Database
 *.sql.backup
@@ -92,10 +92,10 @@ yarn-error.log*
 pnpm-debug.log*
 
 # SvelteKit / Frontend Build
-velocitypay-web/.svelte-kit/
-velocitypay-web/build/
-velocitypay-web/dist/
-velocitypay-web/.output/
+velopay-web/.svelte-kit/
+velopay-web/build/
+velopay-web/dist/
+velopay-web/.output/
 .vercel/
 .netlify/
 .turbo/
@@ -106,9 +106,9 @@ yarn.lock
 pnpm-lock.yaml
 
 # Frontend environment
-velocitypay-web/.env
-velocitypay-web/.env.*
-!velocitypay-web/.env.example
+velopay-web/.env
+velopay-web/.env.*
+!velopay-web/.env.example
 
 # IDEs & Editors
 .vscode/

@@ -12,7 +12,7 @@ use crate::services::MintService;
 /// Create a mint request (requires authentication)
 async fn create_mint_request(
     pool: web::Data<PgPool>,
-    mint_service: web::Data<MintService>,
+    mint_service: web::Data<std::sync::Arc<MintService>>,
     req: HttpRequest,
     mint_req: web::Json<CreateMintRequest>,
 ) -> Result<HttpResponse> {
@@ -50,7 +50,7 @@ async fn create_mint_request(
 /// Get mint request by ID (requires authentication)
 async fn get_mint_request(
     pool: web::Data<PgPool>,
-    mint_service: web::Data<MintService>,
+    mint_service: web::Data<std::sync::Arc<MintService>>,
     req: HttpRequest,
     request_id: web::Path<Uuid>,
 ) -> Result<HttpResponse> {
@@ -70,7 +70,7 @@ async fn get_mint_request(
 /// Get all mint requests for current user (requires authentication)
 async fn get_my_mint_requests(
     pool: web::Data<PgPool>,
-    mint_service: web::Data<MintService>,
+    mint_service: web::Data<std::sync::Arc<MintService>>,
     req: HttpRequest,
 ) -> Result<HttpResponse> {
     let user_id = get_user_id(&req)?;
@@ -90,7 +90,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::scope("/mint")
             .route("", web::post().to(create_mint_request))
-            .route("/{request_id}", web::get().to(get_mint_request))
-            .route("/my-requests", web::get().to(get_my_mint_requests)),
+            .route("/my-requests", web::get().to(get_my_mint_requests))
+            .route("/{request_id}", web::get().to(get_mint_request)),
     );
 }

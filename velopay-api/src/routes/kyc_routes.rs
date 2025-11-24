@@ -10,7 +10,7 @@ use crate::services::KYCService;
 /// Submit KYC information (requires authentication)
 async fn submit_kyc(
     pool: web::Data<PgPool>,
-    kyc_service: web::Data<KYCService>,
+    kyc_service: web::Data<std::sync::Arc<KYCService>>,
     req: HttpRequest,
     kyc_req: web::Json<SubmitKYCRequest>,
 ) -> Result<HttpResponse> {
@@ -49,7 +49,7 @@ async fn submit_kyc(
 /// Get KYC submission for current user (requires authentication)
 async fn get_my_kyc(
     pool: web::Data<PgPool>,
-    kyc_service: web::Data<KYCService>,
+    kyc_service: web::Data<std::sync::Arc<KYCService>>,
     req: HttpRequest,
 ) -> Result<HttpResponse> {
     let user_id = get_user_id(&req)?;
@@ -71,7 +71,7 @@ async fn get_my_kyc(
 /// Get KYC submission by ID (requires authentication)
 async fn get_kyc_by_id(
     pool: web::Data<PgPool>,
-    kyc_service: web::Data<KYCService>,
+    kyc_service: web::Data<std::sync::Arc<KYCService>>,
     req: HttpRequest,
     submission_id: web::Path<Uuid>,
 ) -> Result<HttpResponse> {

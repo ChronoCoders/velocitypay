@@ -19,7 +19,7 @@ struct HistoryQuery {
 /// Send payment (requires authentication)
 async fn send_payment(
     pool: web::Data<PgPool>,
-    payment_service: web::Data<PaymentService>,
+    payment_service: web::Data<std::sync::Arc<PaymentService>>,
     req: HttpRequest,
     payment: web::Json<SendPaymentRequest>,
 ) -> Result<HttpResponse> {
@@ -48,7 +48,7 @@ async fn send_payment(
 /// Get transaction by ID (requires authentication)
 async fn get_transaction(
     pool: web::Data<PgPool>,
-    payment_service: web::Data<PaymentService>,
+    payment_service: web::Data<std::sync::Arc<PaymentService>>,
     req: HttpRequest,
     transaction_id: web::Path<Uuid>,
 ) -> Result<HttpResponse> {
@@ -68,7 +68,7 @@ async fn get_transaction(
 /// Get transaction history for wallet (requires authentication)
 async fn get_transaction_history(
     pool: web::Data<PgPool>,
-    payment_service: web::Data<PaymentService>,
+    payment_service: web::Data<std::sync::Arc<PaymentService>>,
     req: HttpRequest,
     wallet_address: web::Path<String>,
     query: web::Query<HistoryQuery>,
