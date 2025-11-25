@@ -12,19 +12,19 @@
 ## 🚀 Features
 
 ### 💸 Core Payment Features
-- **Peer-to-Peer Transfers**: Send and receive VLY tokens instantly
+- **Peer-to-Peer Transfers**: Send and receive VCS instantly
 - **Transaction History**: Complete audit trail of all transactions
 - **Multi-signature Support**: Enhanced security for high-value transactions
 
 ### 🏦 Fiat On/Off Ramp
-- **Mint Operations**: Convert fiat to VLY tokens through verified bank transfers
-- **Burn Operations**: Convert VLY tokens back to fiat currency
+- **Mint Operations**: Convert fiat to VCS through verified bank transfers
+- **Burn Operations**: Convert VCS back to fiat currency
 - **Compliance Framework**: Built-in KYC/AML verification system
 
 ### 🔐 Security & Compliance
 - **KYC Verification**: Identity verification for regulatory compliance
 - **Admin Controls**: Centralized oversight for mint/burn approvals
-- **JWT Authentication**: Secure API access with token-based auth
+- **JWT Authentication**: Secure API access with coin-based auth
 - **Rate Limiting**: DDoS protection and abuse prevention
 
 ### 🎯 Technical Highlights
@@ -76,7 +76,7 @@ velopay/
 - **Framework**: Actix-web 4.x
 - **Language**: Rust
 - **Database**: PostgreSQL 16
-- **Authentication**: JWT (jsonwebtoken)
+- **Authentication**: JWT (jsonwebcoin)
 - **Rate Limiting**: Governor middleware
 - **Client**: Subxt for blockchain interaction
 
@@ -359,7 +359,7 @@ User → Frontend (SvelteKit) → API Gateway (Actix) → PostgreSQL
 
 ### Key Components
 
-1. **VeloPay Pallet**: Core blockchain logic for token operations
+1. **VeloPay Pallet**: Core blockchain logic for coin operations
 2. **API Gateway**: RESTful interface for user interactions
 3. **Database**: Off-chain data persistence for fast queries
 4. **Frontend**: User-friendly web interface
