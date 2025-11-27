@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
-	import { Moon, Sun } from 'lucide-svelte';
+	import Moon from 'lucide-svelte/icons/moon';
+	import Sun from 'lucide-svelte/icons/sun';
 
 	let isDark = $state(false);
 	let mounted = $state(false);
