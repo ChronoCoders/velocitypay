@@ -46,7 +46,7 @@ echo Starting Alice Validator...
 echo ========================================
 echo.
 
-REM Start the node (disable color/emoji output for CMD compatibility)
+REM Start the node 
 set RUST_LOG_STYLE=never
 set NO_COLOR=1
 target\release\velo-node.exe ^
