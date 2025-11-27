@@ -59,7 +59,7 @@
 </script>
 
 <svelte:head>
-	<title>VeloPay Explorer</title>
+	<title>Velo Chain Explorer</title>
 </svelte:head>
 
 <div class="min-h-screen bg-neutral-50 dark:bg-neutral-950">
@@ -67,7 +67,7 @@
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 			<div class="flex items-center justify-between mb-6">
 				<div>
-					<h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">VeloPay Explorer</h1>
+					<h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">Velo Chain Explorer</h1>
 					{#if $isConnected}
 						<div class="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
 							<div class="w-2 h-2 rounded-full bg-success-500 animate-pulse"></div>

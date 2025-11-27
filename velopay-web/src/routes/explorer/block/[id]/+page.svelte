@@ -34,7 +34,7 @@
 </script>
 
 <svelte:head>
-	<title>Block #{blockId} - VeloPay Explorer</title>
+	<title>Block #{blockId} - Velo Chain Explorer</title>
 </svelte:head>
 
 <div class="min-h-screen bg-neutral-50 dark:bg-neutral-950">
