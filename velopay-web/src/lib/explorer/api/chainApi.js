@@ -1,5 +1,5 @@
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 
 const CHAIN_ENDPOINT = 'ws://127.0.0.1:9944';
 
@@ -40,7 +40,7 @@ export async function connectToChain() {
 }
 
 export async function subscribeToBlocks(callback) {
-	const apiInstance = await api;
+	const apiInstance = get(api);
 	if (!apiInstance) throw new Error('API not connected');
 
 	return apiInstance.rpc.chain.subscribeNewHeads((header) => {
@@ -55,7 +55,7 @@ export async function subscribeToBlocks(callback) {
 }
 
 export async function getBlock(hashOrNumber) {
-	const apiInstance = await api;
+	const apiInstance = get(api);
 	if (!apiInstance) throw new Error('API not connected');
 
 	const hash =
@@ -84,7 +84,7 @@ export async function getBlock(hashOrNumber) {
 }
 
 export async function getAccount(address) {
-	const apiInstance = await api;
+	const apiInstance = get(api);
 	if (!apiInstance) throw new Error('API not connected');
 
 	const account = await apiInstance.query.system.account(address);
@@ -103,7 +103,7 @@ export async function getAccount(address) {
 }
 
 export async function searchByHash(hash) {
-	const apiInstance = await api;
+	const apiInstance = get(api);
 	if (!apiInstance) throw new Error('API not connected');
 
 	try {

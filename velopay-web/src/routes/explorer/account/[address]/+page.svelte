@@ -66,7 +66,8 @@
 	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 		{#if loading}
 			<div class="space-y-6">
-				{#each Array(3) as _, i (i)}
+				<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+				{#each Array(3) as _skeleton, i (i)}
 					<div class="h-48 bg-neutral-200 dark:bg-neutral-800 rounded-xl animate-pulse"></div>
 				{/each}
 			</div>

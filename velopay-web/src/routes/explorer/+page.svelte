@@ -126,7 +126,8 @@
 				<h2 class="text-xl font-bold text-neutral-900 dark:text-white mb-4">Recent Blocks</h2>
 				<div class="space-y-3">
 					{#if loading}
-						{#each Array(5) as _, i (i)}
+						<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+						{#each Array(5) as _block, i (i)}
 							<div class="h-24 bg-neutral-200 dark:bg-neutral-800 rounded-lg animate-pulse"></div>
 						{/each}
 					{:else if recentBlocks.length === 0}
