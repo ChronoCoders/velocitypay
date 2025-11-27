@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Header from './Header.svelte';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import './layout.css';
 
 	let { children } = $props();
@@ -17,6 +18,8 @@
 			visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to learn about SvelteKit
 		</p>
 	</footer>
+
+	<ThemeToggle />
 </div>
 
 <style>
