@@ -3,7 +3,11 @@
 	import { page } from '$app/stores';
 	import { connectToChain, getAccount } from '$lib/explorer/api/chainApi';
 	import Card from '$lib/explorer/components/Card.svelte';
-	import { ArrowLeft, Wallet, DollarSign, Lock, Hash } from 'lucide-svelte';
+	import ArrowLeft from 'lucide-svelte/icons/arrow-left';
+	import Wallet from 'lucide-svelte/icons/wallet';
+	import DollarSign from 'lucide-svelte/icons/dollar-sign';
+	import Lock from 'lucide-svelte/icons/lock';
+	import Hash from 'lucide-svelte/icons/hash';
 	import { goto } from '$app/navigation';
 
 	let accountData = null;

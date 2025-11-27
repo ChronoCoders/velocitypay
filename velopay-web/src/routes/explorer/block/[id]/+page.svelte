@@ -3,7 +3,12 @@
 	import { page } from '$app/stores';
 	import { connectToChain, getBlock } from '$lib/explorer/api/chainApi';
 	import Card from '$lib/explorer/components/Card.svelte';
-	import { ArrowLeft, Cube, Hash, FileText, CheckCircle, XCircle } from 'lucide-svelte';
+	import ArrowLeft from 'lucide-svelte/icons/arrow-left';
+	import Box from 'lucide-svelte/icons/box';
+	import Hash from 'lucide-svelte/icons/hash';
+	import FileText from 'lucide-svelte/icons/file-text';
+	import CheckCircle from 'lucide-svelte/icons/check-circle';
+	import XCircle from 'lucide-svelte/icons/x-circle';
 	import { goto } from '$app/navigation';
 
 	let blockData = null;
@@ -50,7 +55,7 @@
 			</button>
 			<div class="flex items-center gap-3">
 				<div class="p-3 rounded-xl bg-primary-50 dark:bg-primary-950">
-					<Cube class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+					<Box class="w-6 h-6 text-primary-600 dark:text-primary-400" />
 				</div>
 				<div>
 					<h1 class="text-2xl font-bold text-neutral-900 dark:text-white">

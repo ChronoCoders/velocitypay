@@ -1,5 +1,7 @@
 <script>
-	import { Cube, Clock, Hash } from 'lucide-svelte';
+	import Box from 'lucide-svelte/icons/box';
+	import Clock from 'lucide-svelte/icons/clock';
+	import Hash from 'lucide-svelte/icons/hash';
 	import { preloadData, pushState, goto } from '$app/navigation';
 
 	export let block;
@@ -38,7 +40,7 @@
 			<div
 				class="p-2 rounded-lg bg-primary-50 dark:bg-primary-950 group-hover:bg-accent-50 dark:group-hover:bg-accent-950 transition-colors"
 			>
-				<Cube
+				<Box
 					class="w-4 h-4 text-primary-600 dark:text-primary-400 group-hover:text-accent-600 dark:group-hover:text-accent-400 transition-colors"
 				/>
 			</div>

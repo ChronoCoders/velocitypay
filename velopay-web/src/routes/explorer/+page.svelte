@@ -8,7 +8,11 @@
 	} from '$lib/explorer/api/chainApi';
 	import StatCard from '$lib/explorer/components/StatCard.svelte';
 	import BlockCard from '$lib/explorer/components/BlockCard.svelte';
-	import { Activity, Blocks, Users, TrendingUp, Search } from 'lucide-svelte';
+	import Activity from 'lucide-svelte/icons/activity';
+	import Blocks from 'lucide-svelte/icons/blocks';
+	import Users from 'lucide-svelte/icons/users';
+	import TrendingUp from 'lucide-svelte/icons/trending-up';
+	import Search from 'lucide-svelte/icons/search';
 
 	let recentBlocks = [];
 	let stats = {
