@@ -1,6 +1,8 @@
 # Velo Chain - Substrate Blockchain Node
 
-The blockchain layer of VeloPay - a custom Substrate-based chain with specialized pallets for payment operations.
+The blockchain layer of VeloPay – a **custom Substrate-based chain** with specialized pallets for payment operations.
+
+> ⚠️ This chain is fully private/custom. It does **not** connect to Polkadot/Kusama networks or any public explorers.
 
 ---
 
@@ -8,18 +10,19 @@ The blockchain layer of VeloPay - a custom Substrate-based chain with specialize
 
 ### Pallets
 
-- **VeloPay Pallet**: Core payment logic with mint/burn operations
-  - Coin transfers
-  - Mint requests and approvals
-  - Burn requests and processing
-  - Balance management
+* **VeloPay Pallet**: Core payment logic with mint/burn operations
+
+  * Coin transfers
+  * Mint requests and approvals
+  * Burn requests and processing
+  * Balance management
 
 ### Runtime Configuration
 
-- **Consensus**: Aura (block production) + GRANDPA (finality)
-- **Block Time**: 6 seconds
-- **Coin**: VCS (VeloCash)
-- **Decimal Places**: 12
+* **Consensus**: Aura (block production) + GRANDPA (finality)
+* **Block Time**: 6 seconds
+* **Coin**: VCS (VeloCash)
+* **Decimal Places**: 12
 
 ---
 
@@ -27,10 +30,11 @@ The blockchain layer of VeloPay - a custom Substrate-based chain with specialize
 
 ### Prerequisites
 
-- Rust 1.70+
-- Substrate dependencies
+* Rust 1.70+
+* Substrate dependencies
+* Git, Node.js/npm (for frontend, optional)
 
-### Build
+### Build Node
 
 ```bash
 cargo build --release
@@ -42,7 +46,7 @@ cargo build --release
 # Single node (Alice)
 ./target/release/velo-chain --dev --tmp
 
-# Or use batch script
+# Or use batch/script
 start-local.bat  # Windows
 ./start-local.sh # Linux/Mac
 ```
@@ -50,6 +54,7 @@ start-local.bat  # Windows
 ### Run Multi-Node Network
 
 **Terminal 1 (Alice):**
+
 ```bash
 ./target/release/velo-chain \
   --base-path /tmp/alice \
@@ -62,6 +67,7 @@ start-local.bat  # Windows
 ```
 
 **Terminal 2 (Bob):**
+
 ```bash
 ./target/release/velo-chain \
   --base-path /tmp/bob \
@@ -90,10 +96,11 @@ cargo test -p pallet-velopay
 ## 📝 Chain Specification
 
 Located in `node/src/chain_spec.rs`:
-- Genesis configuration
-- Initial balances
-- Validator set
-- Runtime parameters
+
+* Genesis configuration
+* Initial balances
+* Validator set
+* Runtime parameters
 
 ---
 
@@ -101,20 +108,22 @@ Located in `node/src/chain_spec.rs`:
 
 ### Genesis Accounts (Development)
 
-- **Alice**: `5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY`
-- **Bob**: `5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty`
+* **Alice**: `5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY`
+* **Bob**: `5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty`
 
 ### Ports
 
-- **RPC**: 9944 (Alice), 9945 (Bob)
-- **WS**: Same as RPC
-- **P2P**: 30333 (Alice), 30334 (Bob)
+* **RPC**: 9944 (Alice), 9945 (Bob)
+* **WS**: Same as RPC
+* **P2P**: 30333 (Alice), 30334 (Bob)
 
 ---
 
-## 🔌 Integration
+## 🔌 Integration (Local Only)
 
-### Connect via Polkadot.js
+You can connect to your local VeloPay node using Polkadot.js API or Subxt **without connecting to any public network**.
+
+### Connect via Polkadot.js (local only)
 
 ```javascript
 import { ApiPromise, WsProvider } from '@polkadot/api';
@@ -123,7 +132,7 @@ const wsProvider = new WsProvider('ws://127.0.0.1:9944');
 const api = await ApiPromise.create({ provider: wsProvider });
 ```
 
-### Connect via Subxt (Rust)
+### Connect via Subxt (Rust, local only)
 
 ```rust
 use subxt::{OnlineClient, PolkadotConfig};
@@ -131,32 +140,34 @@ use subxt::{OnlineClient, PolkadotConfig};
 let api = OnlineClient::<PolkadotConfig>::new().await?;
 ```
 
+> ⚠️ Do **not** connect to Polkadot/Kusama nodes. This is a fully private chain.
+
 ---
 
 ## 📚 VeloPay Pallet API
 
 ### Extrinsics
 
-- `transfer(dest, amount)` - Transfer coins
-- `request_mint(amount, bank_reference)` - Request coin minting
-- `approve_mint(request_id)` - Approve mint request (authority only)
-- `request_burn(amount, bank_account)` - Request coin burning
-- `approve_burn(request_id)` - Approve burn request (authority only)
+* `transfer(dest, amount)` - Transfer coins
+* `request_mint(amount, bank_reference)` - Request coin minting
+* `approve_mint(request_id)` - Approve mint request (authority only)
+* `request_burn(amount, bank_account)` - Request coin burning
+* `approve_burn(request_id)` - Approve burn request (authority only)
 
 ### Storage
 
-- `Balances` - Account balances
-- `MintRequests` - Pending mint requests
-- `BurnRequests` - Pending burn requests
-- `TotalSupply` - Current coin supply
+* `Balances` - Account balances
+* `MintRequests` - Pending mint requests
+* `BurnRequests` - Pending burn requests
+* `TotalSupply` - Current coin supply
 
 ### Events
 
-- `Transfer(from, to, amount)`
-- `MintRequested(account, amount)`
-- `MintApproved(request_id)`
-- `BurnRequested(account, amount)`
-- `BurnApproved(request_id)`
+* `Transfer(from, to, amount)`
+* `MintRequested(account, amount)`
+* `MintApproved(request_id)`
+* `BurnRequested(account, amount)`
+* `BurnApproved(request_id)`
 
 ---
 
@@ -177,12 +188,35 @@ let api = OnlineClient::<PolkadotConfig>::new().await?;
 
 ---
 
-## 📖 Resources
+## 🔎 Local RPC Testing
 
-- [Substrate Documentation](https://docs.substrate.io)
-- [Polkadot Wiki](https://wiki.polkadot.network)
-- [Rust Book](https://doc.rust-lang.org/book/)
+You can verify your node via `test-rpc.bat` or direct curl commands:
+
+```bash
+# Chain info
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"system_chain","params":[],"id":1}' \
+  http://127.0.0.1:9944
+
+# Chain health
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"system_health","params":[],"id":1}' \
+  http://127.0.0.1:9944
+
+# Current block
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"chain_getHeader","params":[],"id":1}' \
+  http://127.0.0.1:9944
+```
 
 ---
 
-**Part of VeloPay Project**
+## 📖 Resources
+
+* [Substrate Documentation](https://docs.substrate.io)
+* [Rust Book](https://doc.rust-lang.org/book)
+
+---
+
+**Part of VeloPay Project – Private / Custom Blockchain** ✅
+
