@@ -13,18 +13,13 @@ pub mod pallet {
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
 
-    #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+    #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen, Default)]
     pub enum KycStatus {
+        #[default]
         NotSubmitted,
         Pending,
         Verified,
         Rejected,
-    }
-
-    impl Default for KycStatus {
-        fn default() -> Self {
-            KycStatus::NotSubmitted
-        }
     }
 
     #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]

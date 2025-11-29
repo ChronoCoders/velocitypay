@@ -87,13 +87,21 @@ pub mod pallet {
         ValueQuery,
     >;
 
+    // Type alias to reduce complexity
+    pub type ComplianceAlertOf<T> = ComplianceAlert<
+        <T as frame_system::Config>::AccountId,
+        <T as Config>::Balance,
+        BlockNumberFor<T>,
+        <T as Config>::MaxReasonLength,
+    >;
+
     #[pallet::storage]
     #[pallet::getter(fn alerts)]
     pub type Alerts<T: Config> = StorageMap<
         _,
         Blake2_128Concat,
         u64,
-        ComplianceAlert<T::AccountId, T::Balance, BlockNumberFor<T>, T::MaxReasonLength>,
+        ComplianceAlertOf<T>,
         OptionQuery,
     >;
 
