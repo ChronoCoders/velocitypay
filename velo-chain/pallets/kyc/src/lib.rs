@@ -107,7 +107,7 @@ pub mod pallet {
 
             let kyc_data = KycData {
                 account: who.clone(),
-                document_hash: document_hash.clone(),
+                document_hash,
                 status: KycStatus::Pending,
                 submitted_at: current_block,
                 verified_at: None,
