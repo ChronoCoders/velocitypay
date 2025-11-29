@@ -22,31 +22,21 @@ pub mod pallet {
     type BalanceOf<T> =
         <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
-    #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+    #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen, Default)]
     pub enum MintRequestStatus {
+        #[default]
         Pending,
         Completed,
         Rejected,
     }
 
-    impl Default for MintRequestStatus {
-        fn default() -> Self {
-            MintRequestStatus::Pending
-        }
-    }
-
-    #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+    #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen, Default)]
     pub enum BurnRequestStatus {
+        #[default]
         Pending,
         Reserved,
         Completed,
         Rejected,
-    }
-
-    impl Default for BurnRequestStatus {
-        fn default() -> Self {
-            BurnRequestStatus::Pending
-        }
     }
 
     #[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo, MaxEncodedLen)]

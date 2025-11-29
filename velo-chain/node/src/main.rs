@@ -77,6 +77,7 @@ pub enum Subcommand {
     Revert(sc_cli::RevertCmd),
 }
 
+#[allow(clippy::result_large_err)]
 fn main() -> sc_cli::Result<()> {
     let cli = <Cli as clap::Parser>::parse();
 
