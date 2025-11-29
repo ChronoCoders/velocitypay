@@ -16,28 +16,29 @@ pub type FullClient =
 type FullBackend = sc_service::TFullBackend<Block>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 
+// Type alias to reduce complexity
+type PartialComponentsResult = sc_service::PartialComponents<
+    FullClient,
+    FullBackend,
+    FullSelectChain,
+    sc_consensus::DefaultImportQueue<Block>,
+    sc_transaction_pool::FullPool<Block, FullClient>,
+    (
+        sc_consensus_grandpa::GrandpaBlockImport<
+            FullBackend,
+            Block,
+            FullClient,
+            FullSelectChain,
+        >,
+        sc_consensus_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
+        Option<Telemetry>,
+    ),
+>;
+
+#[allow(clippy::result_large_err)]
 pub fn new_partial(
     config: &Configuration,
-) -> Result<
-    sc_service::PartialComponents<
-        FullClient,
-        FullBackend,
-        FullSelectChain,
-        sc_consensus::DefaultImportQueue<Block>,
-        sc_transaction_pool::FullPool<Block, FullClient>,
-        (
-            sc_consensus_grandpa::GrandpaBlockImport<
-                FullBackend,
-                Block,
-                FullClient,
-                FullSelectChain,
-            >,
-            sc_consensus_grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
-            Option<Telemetry>,
-        ),
-    >,
-    ServiceError,
-> {
+) -> Result<PartialComponentsResult, ServiceError> {
     let telemetry = config
         .telemetry_endpoints
         .clone()
@@ -49,7 +50,7 @@ pub fn new_partial(
         })
         .transpose()?;
 
-    let executor = sc_service::new_wasm_executor(&config);
+    let executor = sc_service::new_wasm_executor(config);
 
     let (client, backend, keystore_container, task_manager) =
         sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -122,6 +123,7 @@ pub fn new_partial(
     })
 }
 
+#[allow(clippy::result_large_err)]
 pub fn new_full(config: Configuration) -> Result<TaskManager, ServiceError> {
     let sc_service::PartialComponents {
         client,
